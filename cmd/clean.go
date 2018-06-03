@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"os"
+
+	"github.com/ahstn/atlas/builder"
 	"github.com/ahstn/atlas/pb"
+	"github.com/apex/log"
 	"github.com/urfave/cli"
 )
 
@@ -18,15 +22,25 @@ var Clean = cli.Command{
 // i.e. "atlas clean build"
 func CleanAction(c *cli.Context) error {
 	cliArgs := c.Args()
+	var mvn builder.Maven
+	mvn.Clean()
 
 	pb.RunProgressBar("Cleaning")
 
 	for _, a := range cliArgs {
 		if Build.HasName(a) {
 			defer Build.Run(c)
+			mvn.Build()
 		} else if Package.HasName(a) {
 			defer Package.Run(c)
+			mvn.Package()
 		}
 	}
+
+	if err := mvn.Run(); err != nil {
+		log.Info("Error:" + err.Error())
+		os.Exit(1)
+	}
+
 	return nil
 }
