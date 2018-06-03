@@ -11,23 +11,22 @@ var Clean = cli.Command{
 	Aliases: []string{"c"},
 	Usage:   "clean the applications build artifacts and dependencies",
 	Action:  CleanAction,
-	Subcommands: []cli.Command{
-		{
-			Name:    "build",
-			Aliases: []string{"b"},
-			Usage:   "executes the application build process",
-			Action: func(c *cli.Context) error {
-				if err := CleanAction(c); err != nil {
-					return err
-				}
-				return BuildAction(c)
-			},
-		},
-	},
 }
 
 // CleanAction executes the logic to clean the application build environment
+// While also allowing commands to be chained
+// i.e. "atlas clean build"
 func CleanAction(c *cli.Context) error {
-	defer pb.RunProgressBar("Cleaning")
+	cliArgs := c.Args()
+
+	pb.RunProgressBar("Cleaning")
+
+	for _, a := range cliArgs {
+		if Build.HasName(a) {
+			defer Build.Run(c)
+		} else if Package.HasName(a) {
+			defer Package.Run(c)
+		}
+	}
 	return nil
 }

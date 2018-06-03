@@ -13,6 +13,7 @@ func main() {
 	app.Commands = []cli.Command{
 		cmd.Clean,
 		cmd.Build,
+		cmd.Package,
 	}
 
 	err := app.Run(os.Args)
