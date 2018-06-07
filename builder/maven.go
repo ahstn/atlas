@@ -2,7 +2,6 @@ package builder
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -57,7 +56,6 @@ func (m *Maven) Package() {
 
 // Run executes the built command
 func (m *Maven) Run() error {
-	var stderr bytes.Buffer
 	stdoutPipe, err := m.cmd.StdoutPipe()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
@@ -68,11 +66,22 @@ func (m *Maven) Run() error {
 		fmt.Fprintln(os.Stderr, "Error creating StderrPipe for Cmd", err)
 	}
 
+	failedTests := false
 	queue := make([]*spinner.Spinner, 0)
 	scanner := bufio.NewScanner(stdoutPipe)
 	go func() {
 		for scanner.Scan() {
-			if strings.Contains(scanner.Text(), "Building") {
+			if strings.Contains(scanner.Text(), "Failed tests:") {
+				failedTests = true
+			} else if strings.Contains(scanner.Text(), "Tests run:") {
+				failedTests = false
+			}
+
+			if failedTests {
+				fmt.Printf("\n%s", scanner.Text())
+			} else if strings.Contains(scanner.Text(), "Failed to execute goal") {
+				fmt.Printf("\n\n%s\n", scanner.Text())
+			} else if strings.Contains(scanner.Text(), "Building") {
 				if len(queue) != 0 {
 					x := queue[0]
 					x.Stop()
@@ -100,11 +109,7 @@ func (m *Maven) Run() error {
 
 	err = m.cmd.Wait()
 	if err != nil {
-		fmt.Println("WAAAAIT")
-		m.cmd.Stderr = &stderr
-		fmt.Println(string(stderr.Bytes()))
-		fmt.Println("HI", err)
-		fmt.Println("Scanner:", string(errScanner.Bytes()))
+		fmt.Println("\n ")
 		return err
 	}
 
