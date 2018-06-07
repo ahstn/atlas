@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/ahstn/atlas/builder"
-	"github.com/ahstn/atlas/pb"
 	"github.com/apex/log"
 	"github.com/urfave/cli"
 )
@@ -24,8 +23,6 @@ func CleanAction(c *cli.Context) error {
 	cliArgs := c.Args()
 	var mvn builder.Maven
 	mvn.Clean()
-
-	pb.RunProgressBar("Cleaning")
 
 	for _, a := range cliArgs {
 		if Build.HasName(a) {

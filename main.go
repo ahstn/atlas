@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ahstn/atlas/cmd"
+	"github.com/ahstn/atlas/flag"
 	"github.com/urfave/cli"
 )
 
@@ -14,6 +15,9 @@ func main() {
 		cmd.Clean,
 		cmd.Build,
 		cmd.Package,
+	}
+	app.Flags = []cli.Flag{
+		flag.SkipTests,
 	}
 
 	err := app.Run(os.Args)
