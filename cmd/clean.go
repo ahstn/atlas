@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/ahstn/atlas/builder"
+	"github.com/ahstn/atlas/flag"
 	"github.com/apex/log"
 	"github.com/urfave/cli"
 )
@@ -14,6 +15,10 @@ var Clean = cli.Command{
 	Aliases: []string{"c"},
 	Usage:   "clean the applications build artifacts and dependencies",
 	Action:  CleanAction,
+	Flags: []cli.Flag{
+		flag.SkipTests,
+		flag.Verbose,
+	},
 }
 
 // CleanAction executes the logic to clean the application build environment

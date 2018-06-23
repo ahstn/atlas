@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/ahstn/atlas/pb"
 	"github.com/urfave/cli"
 )
 
@@ -11,7 +10,6 @@ var Build = cli.Command{
 	Aliases: []string{"b"},
 	Usage:   "execute the application build process",
 	Action: func(c *cli.Context) error {
-		defer pb.RunProgressBar("Building")
 		return nil
 	},
 }

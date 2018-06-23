@@ -10,14 +10,16 @@ import (
 )
 
 func main() {
-	app := cli.NewApp()
-	app.Commands = []cli.Command{
-		cmd.Clean,
-		cmd.Build,
-		cmd.Package,
-	}
-	app.Flags = []cli.Flag{
-		flag.SkipTests,
+	app := &cli.App{
+		Commands: []cli.Command{
+			cmd.Clean,
+			cmd.Build,
+			cmd.Package,
+		},
+		Flags: []cli.Flag{
+			flag.SkipTests,
+			flag.Verbose,
+		},
 	}
 
 	err := app.Run(os.Args)
