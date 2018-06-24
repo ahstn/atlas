@@ -30,6 +30,12 @@ type Docker struct {
 // Read attempts to parse the config file located at the path passed in
 func Read(path string) (Project, error) {
 	var p Project
+	var err error
+
+	path, err = validateConfig(path)
+	if err != nil {
+		return Project{}, err
+	}
 
 	file, err := ioutil.ReadFile(path)
 	if err != nil {

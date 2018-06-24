@@ -28,7 +28,6 @@ func ProjectAction(c *cli.Context) error {
 	p, err := config.Read(path.Join(h, c.String("config")))
 	if err != nil {
 		log.Printf("File not found. Error: %v", err)
-		// TODO: try './atlas.yaml'
 	}
 
 	for _, app := range p.Services {
