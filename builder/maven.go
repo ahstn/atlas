@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 
 	"github.com/ahstn/atlas/pb"
 	"github.com/apex/log"
@@ -18,6 +19,7 @@ func getPath() (string, error) {
 
 // Maven is a implmentation of Builder{} for Java
 type Maven struct {
+	Dir string
 	cmd exec.Cmd
 }
 
@@ -31,7 +33,7 @@ func (m *Maven) initialiseCommand() {
 			Path: path, // allow user to set custom exec path
 			Args: []string{""},
 			Env:  nil, // allow user to set custom environment variables
-			Dir:  "",  // allow user to pass custom project path
+			Dir:  m.Dir,
 		}
 	}
 }
@@ -79,10 +81,12 @@ func (m *Maven) Run(v bool) error {
 	}
 
 	scanner := bufio.NewScanner(stdoutPipe)
+	var wg sync.WaitGroup
 	if v {
 		go printVerboseLog(scanner)
 	} else {
-		go printLog(scanner) // TODO: WaitGroup here
+		wg.Add(1)
+		go printLog(scanner, &wg)
 	}
 
 	errScanner := bufio.NewScanner(stderrPipe)
@@ -94,7 +98,6 @@ func (m *Maven) Run(v bool) error {
 
 	err = m.cmd.Start()
 	if err != nil {
-		fmt.Println("ERRROR")
 		return err
 	}
 
@@ -104,24 +107,25 @@ func (m *Maven) Run(v bool) error {
 		return err
 	}
 
+	wg.Wait()
 	return nil
 }
 
-func printLog(scanner *bufio.Scanner) {
+func printLog(s *bufio.Scanner, wg *sync.WaitGroup) {
 	failedTests := false
 	queue := make([]*spinner.Spinner, 0)
-	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), "Failed tests:") {
+	for s.Scan() {
+		if strings.Contains(s.Text(), "Failed tests:") {
 			failedTests = true
-		} else if strings.Contains(scanner.Text(), "Tests run:") {
+		} else if strings.Contains(s.Text(), "Tests run:") {
 			failedTests = false
 		}
 
 		if failedTests {
-			fmt.Printf("\n%s", scanner.Text())
-		} else if strings.Contains(scanner.Text(), "Failed to execute goal") {
-			fmt.Printf("\n\n%s\n", scanner.Text())
-		} else if strings.Contains(scanner.Text(), "Building") {
+			fmt.Printf("\n%s", s.Text())
+		} else if strings.Contains(s.Text(), "Failed to execute goal") {
+			fmt.Printf("\n\n%s\n", s.Text())
+		} else if len(s.Text()) > 30 && strings.Contains(s.Text()[:30], "Building") {
 			// If another "Building" string is detected, last build is done
 			// therefore update the last spinner
 			if len(queue) != 0 {
@@ -131,12 +135,17 @@ func printLog(scanner *bufio.Scanner) {
 			}
 
 			// Create spinner and add it to the queue of pending builds
-			spinner := pb.CreateAndStartBuildSpinner(scanner.Text()[20:])
+			spinner := pb.CreateAndStartBuildSpinner(s.Text()[20:])
 			queue = append(queue, spinner)
 		}
 	}
 
-	queue[len(queue)-1].Stop()
+	for _, x := range queue {
+		x.Stop()
+		queue = queue[1:]
+	}
+
+	wg.Done()
 }
 
 func printVerboseLog(scanner *bufio.Scanner) {

@@ -9,7 +9,7 @@ import (
 )
 
 func validateConfig(s string) (string, error) {
-	if !strings.Contains(s, ".yaml") || !strings.Contains(s, ".yml") {
+	if !strings.Contains(s, ".yaml") {
 		return "", errors.New("config should be a .yaml file")
 	}
 

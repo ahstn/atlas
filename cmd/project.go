@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
 
+	"github.com/ahstn/atlas/builder"
 	"github.com/ahstn/atlas/config"
 	"github.com/ahstn/atlas/flag"
 	"github.com/urfave/cli"
@@ -18,6 +20,7 @@ var Project = cli.Command{
 	Action:  ProjectAction,
 	Flags: []cli.Flag{
 		flag.Config,
+		flag.SkipTests,
 		flag.Verbose,
 	},
 }
@@ -30,11 +33,27 @@ func ProjectAction(c *cli.Context) error {
 		log.Printf("File not found. Error: %v", err)
 	}
 
+	fmt.Println("Operating in base directory: " + p.Root)
 	for _, app := range p.Services {
-		log.Printf("Service: %v", app.Name)
-	}
+		fmt.Println("\nBuilding: " + app.Name)
+		mvn := builder.Maven{
+			Dir: path.Join(p.Root, app.Name),
+		}
 
-	log.Printf("Operating in base directory: %v", p.Root)
+		if c.Bool("clean") {
+			mvn.Clean()
+		}
+		if c.Bool("skipTests") {
+			mvn.SkipTests()
+		}
+
+		mvn.Build()
+
+		if err := mvn.Run(c.Bool("verbose")); err != nil {
+			log.Printf("Error:" + err.Error())
+			os.Exit(1)
+		}
+	}
 
 	return nil
 }
