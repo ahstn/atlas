@@ -54,8 +54,14 @@ func (m *Maven) Package() {
 	m.cmd.Args = append(m.cmd.Args, "package")
 }
 
+// SkipTests appends "-DskipTests" to the command
+func (m *Maven) SkipTests() {
+	m.initialiseCommand()
+	m.cmd.Args = append(m.cmd.Args, "-DskipTests")
+}
+
 // Run executes the built command
-func (m *Maven) Run() error {
+func (m *Maven) Run(v bool) error {
 	stdoutPipe, err := m.cmd.StdoutPipe()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
@@ -66,38 +72,17 @@ func (m *Maven) Run() error {
 		fmt.Fprintln(os.Stderr, "Error creating StderrPipe for Cmd", err)
 	}
 
-	failedTests := false
-	queue := make([]*spinner.Spinner, 0)
 	scanner := bufio.NewScanner(stdoutPipe)
-	go func() {
-		for scanner.Scan() {
-			if strings.Contains(scanner.Text(), "Failed tests:") {
-				failedTests = true
-			} else if strings.Contains(scanner.Text(), "Tests run:") {
-				failedTests = false
-			}
-
-			if failedTests {
-				fmt.Printf("\n%s", scanner.Text())
-			} else if strings.Contains(scanner.Text(), "Failed to execute goal") {
-				fmt.Printf("\n\n%s\n", scanner.Text())
-			} else if strings.Contains(scanner.Text(), "Building") {
-				if len(queue) != 0 {
-					x := queue[0]
-					x.Stop()
-					queue = queue[1:]
-				}
-
-				spinner := pb.CreateAndStartBuildSpinner(scanner.Text()[20:])
-				queue = append(queue, spinner)
-			}
-		}
-	}()
+	if v {
+		go printVerboseLog(scanner)
+	} else {
+		go printLog(scanner) // TODO: WaitGroup here
+	}
 
 	errScanner := bufio.NewScanner(stderrPipe)
 	go func() {
 		for errScanner.Scan() {
-			fmt.Printf("[ERROR]: %s\n", errScanner.Text())
+			//fmt.Printf("[ERROR]: %s\n", errScanner.Text())
 		}
 	}()
 
@@ -114,4 +99,42 @@ func (m *Maven) Run() error {
 	}
 
 	return nil
+}
+
+func printLog(scanner *bufio.Scanner) {
+	failedTests := false
+	queue := make([]*spinner.Spinner, 0)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "Failed tests:") {
+			failedTests = true
+		} else if strings.Contains(scanner.Text(), "Tests run:") {
+			failedTests = false
+		}
+
+		if failedTests {
+			fmt.Printf("\n%s", scanner.Text())
+		} else if strings.Contains(scanner.Text(), "Failed to execute goal") {
+			fmt.Printf("\n\n%s\n", scanner.Text())
+		} else if strings.Contains(scanner.Text(), "Building") {
+			// If another "Building" string is detected, last build is done
+			// therefore update the last spinner
+			if len(queue) != 0 {
+				x := queue[0]
+				x.Stop()
+				queue = queue[1:]
+			}
+
+			// Create spinner and add it to the queue of pending builds
+			spinner := pb.CreateAndStartBuildSpinner(scanner.Text()[20:])
+			queue = append(queue, spinner)
+		}
+	}
+
+	queue[len(queue)-1].Stop()
+}
+
+func printVerboseLog(scanner *bufio.Scanner) {
+	for scanner.Scan() {
+		fmt.Printf("\n%s", scanner.Text())
+	}
 }
