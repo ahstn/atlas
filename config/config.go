@@ -41,5 +41,10 @@ func Read(path string) (Project, error) {
 		return Project{}, err
 	}
 
+	p.Root, err = validateRoot(p.Root)
+	if err != nil {
+		return Project{}, err
+	}
+
 	return p, nil
 }

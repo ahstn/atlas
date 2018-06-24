@@ -35,5 +35,7 @@ func ProjectAction(c *cli.Context) error {
 		log.Printf("Service: %v", app.Name)
 	}
 
+	log.Printf("Operating in base directory: %v", p.Root)
+
 	return nil
 }
