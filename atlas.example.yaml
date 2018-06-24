@@ -1,0 +1,23 @@
+---
+root: ~/git
+services:
+  -
+    docker:
+      dockerfile: ./auth/Dockerfile
+      enabled: false
+    name: auth
+    repo: "https://github.com/ahstn/auth"
+    tasks:
+      - clean
+      - build
+    test: false
+  -
+    docker:
+      dockerfile: ./web/Dockerfile
+      enabled: false
+    name: web
+    repo: "https://github.com/ahstn/web"
+    tasks:
+      - clean
+      - build
+    test: false

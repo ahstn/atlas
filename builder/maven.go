@@ -54,6 +54,18 @@ func (m *Maven) Package() {
 	m.cmd.Args = append(m.cmd.Args, "package")
 }
 
+// SkipTests appends "-DskipTests" to the command
+func (m *Maven) SkipTests() {
+	m.initialiseCommand()
+	m.cmd.Args = append(m.cmd.Args, "-DskipTests")
+}
+
+// SetDir changes the directory the command will execute in
+func (m *Maven) SetDir(d string) {
+	m.initialiseCommand()
+	m.cmd.Dir = d
+}
+
 // Run executes the built command
 func (m *Maven) Run() error {
 	stdoutPipe, err := m.cmd.StdoutPipe()
