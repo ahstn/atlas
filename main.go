@@ -12,9 +12,8 @@ import (
 func main() {
 	app := &cli.App{
 		Commands: []cli.Command{
-			cmd.Clean,
 			cmd.Build,
-			cmd.Package,
+			cmd.Project,
 		},
 		Flags: []cli.Flag{
 			flag.SkipTests,

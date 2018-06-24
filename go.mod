@@ -8,4 +8,5 @@ require (
 	github.com/urfave/cli v1.20.0
 	gopkg.in/cheggaaa/pb.v2 v2.0.6
 	gopkg.in/kyokomi/emoji.v1 v1.5.1
+	gopkg.in/yaml.v2 v2.2.1
 )

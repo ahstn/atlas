@@ -12,7 +12,7 @@ func CreateAndStartBuildSpinner(title string) *spinner.Spinner {
 	s.Color("blue")
 	s.Prefix = " "
 	s.Suffix = fmt.Sprintf(" %s Building ...", title)
-	s.FinalMSG = fmt.Sprintf(" ✔ %s \n", title)
+	s.FinalMSG = fmt.Sprintf(" ✔ %s Complete\n", title)
 	s.Start()
 	return s
 }
