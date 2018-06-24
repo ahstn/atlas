@@ -14,17 +14,39 @@ type Project struct {
 
 // Service is a single buildable application
 type Service struct {
-	Docker Docker   `yaml:"docker"`
-	Name   string   `yaml:"name"`
-	Repo   string   `yaml:"repo"`
-	Tasks  []string `yaml:"tasks"`
-	Test   bool     `yaml:"test"`
+	Docker  Docker   `yaml:"docker"`
+	Package Package  `yaml:"package"`
+	Name    string   `yaml:"name"`
+	Repo    string   `yaml:"repo"`
+	Tasks   []string `yaml:"tasks"`
+	Test    bool     `yaml:"test"`
+}
+
+// HasTask is a helper function for detecting package task
+func (s Service) HasTask(x string) bool {
+	for _, t := range s.Tasks {
+		if t == x {
+			return true
+		}
+	}
+	return false
+}
+
+// HasPackageSubDir is a helper function for detecting package subdir presence
+func (s Service) HasPackageSubDir() bool {
+	return s.Package.SubDir != ""
 }
 
 // Docker stores container information relating to the build
 type Docker struct {
 	Dockerfile string `yaml:"dockerfile"`
 	Enabled    bool   `yaml:"enabled"`
+}
+
+// Package stores packaging information relating to the build
+type Package struct {
+	Parameters string `yaml:"parameters"`
+	SubDir     string `yaml:"subDir"`
 }
 
 // Read attempts to parse the config file located at the path passed in

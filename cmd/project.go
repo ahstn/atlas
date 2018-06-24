@@ -36,24 +36,44 @@ func ProjectAction(c *cli.Context) error {
 	fmt.Println("Operating in base directory: " + p.Root)
 	for _, app := range p.Services {
 		fmt.Println("\nBuilding: " + app.Name)
-		mvn := builder.Maven{
-			Dir: path.Join(p.Root, app.Name),
-		}
+		createAndRunBuilder(path.Join(p.Root, app.Name), app, c)
+	}
 
-		if c.Bool("clean") {
-			mvn.Clean()
-		}
-		if c.Bool("skipTests") {
-			mvn.SkipTests()
-		}
+	return nil
+}
 
+func createAndRunBuilder(p string, app config.Service, c *cli.Context) {
+	mvn := builder.Maven{
+		Dir: p,
+	}
+
+	if c.Bool("clean") {
+		mvn.Clean()
+	}
+	if c.Bool("skipTests") {
+		mvn.SkipTests()
+	}
+
+	// In the event package pom lives in a seperate folder and needs to be ran
+	// after the build, handle as such.
+	if app.HasTask("package") && app.HasPackageSubDir() {
+		packageMvn := mvn
 		mvn.Build()
+		if err := mvn.Run(c.Bool("verbose")); err != nil {
+			log.Printf("Error:" + err.Error())
+			os.Exit(1)
+		}
 
+		packageMvn.Package()
+		if err := packageMvn.Run(c.Bool("verbose")); err != nil {
+			log.Printf("Error:" + err.Error())
+			os.Exit(1)
+		}
+	} else {
+		mvn.Build()
 		if err := mvn.Run(c.Bool("verbose")); err != nil {
 			log.Printf("Error:" + err.Error())
 			os.Exit(1)
 		}
 	}
-
-	return nil
 }
