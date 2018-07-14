@@ -10,10 +10,10 @@ services:
     tasks:
       - clean
       - build
+      - test
     package:
       parameters: "-Drpm.version=1"
       subdir: "package/"
-    test: false
   -
     docker:
       dockerfile: ./web/Dockerfile
@@ -23,4 +23,4 @@ services:
     tasks:
       - clean
       - build
-    test: false
+      - test

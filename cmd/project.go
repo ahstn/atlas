@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"path"
 
 	"github.com/ahstn/atlas/builder"
@@ -13,6 +11,7 @@ import (
 )
 
 // Project defines the command for the cli to process an entire project
+// utilising an atlas.yaml config file
 var Project = cli.Command{
 	Name:    "project",
 	Aliases: []string{"p"},
@@ -26,54 +25,60 @@ var Project = cli.Command{
 }
 
 // ProjectAction executes the logic to read a project file and build it's apps
+// TODO: Proper logging and error handling
 func ProjectAction(c *cli.Context) error {
-	h := path.Join(os.Getenv("HOME"), ".config/atlas/")
-	p, err := config.Read(path.Join(h, c.String("config")))
+	f, err := config.ValidateExists(c.String("config"))
 	if err != nil {
-		log.Printf("File not found. Error: %v", err)
+		panic(err)
 	}
 
-	fmt.Println("Operating in base directory: " + p.Root)
-	for _, app := range p.Services {
-		fmt.Println("\nBuilding: " + app.Name)
-		createAndRunBuilder(path.Join(p.Root, app.Name), app, c)
+	if err = config.ValidateConfig(f); err != nil {
+		panic(err)
+	}
+
+	cfg, err := config.Read(f)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Operating in base directory: " + cfg.Root)
+	for _, app := range cfg.Services {
+		fmt.Println("Building: " + app.Name)
+		createAndRunBuilder(path.Join(cfg.Root, app.Name), app, c)
 	}
 
 	return nil
 }
 
+// TODO: Handle Package Args
 func createAndRunBuilder(p string, app config.Service, c *cli.Context) {
-	mvn := builder.Maven{
-		Dir: p,
-	}
+	mvn := builder.Maven{Dir: p}
 
-	if c.Bool("clean") {
+	if app.HasTask("clean") {
 		mvn.Clean()
 	}
-	if c.Bool("skipTests") {
+	if app.HasTask("build") {
+		mvn.Build()
+	}
+	if !app.HasTask("test") {
 		mvn.SkipTests()
+	}
+	if app.HasTask("package") && !app.HasPackageSubDir() {
+		mvn.Package()
+	}
+
+	if err := mvn.Run(c.Bool("verbose")); err != nil {
+		panic(err)
 	}
 
 	// In the event package pom lives in a seperate folder and needs to be ran
 	// after the build, handle as such.
 	if app.HasTask("package") && app.HasPackageSubDir() {
-		packageMvn := mvn
-		mvn.Build()
-		if err := mvn.Run(c.Bool("verbose")); err != nil {
-			log.Printf("Error:" + err.Error())
-			os.Exit(1)
-		}
+		mvn = builder.Maven{Dir: p}
 
-		packageMvn.Package()
-		if err := packageMvn.Run(c.Bool("verbose")); err != nil {
-			log.Printf("Error:" + err.Error())
-			os.Exit(1)
-		}
-	} else {
-		mvn.Build()
+		mvn.Package()
 		if err := mvn.Run(c.Bool("verbose")); err != nil {
-			log.Printf("Error:" + err.Error())
-			os.Exit(1)
+			panic(err)
 		}
 	}
 }

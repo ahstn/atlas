@@ -54,11 +54,6 @@ func Read(path string) (Project, error) {
 	var p Project
 	var err error
 
-	path, err = validateConfig(path)
-	if err != nil {
-		return Project{}, err
-	}
-
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
 		return Project{}, err
@@ -69,10 +64,11 @@ func Read(path string) (Project, error) {
 		return Project{}, err
 	}
 
-	p.Root, err = validateRoot(p.Root)
+	s, err := ValidateConfigBaseDir(p.Root)
 	if err != nil {
 		return Project{}, err
 	}
+	p.Root = s
 
 	return p, nil
 }
