@@ -11,8 +11,8 @@ func CreateAndStartBuildSpinner(title string) *spinner.Spinner {
 	s := spinner.New(spinner.CharSets[24], 100*time.Millisecond)
 	s.Color("blue")
 	s.Prefix = " "
-	s.Suffix = fmt.Sprintf(" %s Building ...", title)
-	s.FinalMSG = fmt.Sprintf(" ✔ %s \n", title)
+	s.Suffix = fmt.Sprintf("  %s Building ...", title)
+	s.FinalMSG = fmt.Sprintf("  ✔ %s Complete\n", title)
 	s.Start()
 	return s
 }
