@@ -27,3 +27,7 @@ GLOBAL OPTIONS:
    --help, -h       show help
    --version, -v    print the version
 ```
+
+## Overview
+Very basic example for now:
+[![asciicast](https://asciinema.org/a/vcZS0r2z15HXiusFTBHGPQtSQ.png)](https://asciinema.org/a/vcZS0r2z15HXiusFTBHGPQtSQ)
