@@ -41,9 +41,9 @@ func ProjectAction(c *cli.Context) error {
 		panic(err)
 	}
 
-	fmt.Println("Operating in base directory: " + cfg.Root)
+	fmt.Printf("Operating in base directory: [%v]\n", cfg.Root)
 	for _, app := range cfg.Services {
-		fmt.Println("Building: " + app.Name)
+		fmt.Printf("\nBuilding: %v [%v]\n", app.Name, path.Join(cfg.Root, app.Name))
 		createAndRunBuilder(path.Join(cfg.Root, app.Name), app, c)
 	}
 

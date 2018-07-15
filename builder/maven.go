@@ -103,7 +103,6 @@ func (m *Maven) Run(v bool) error {
 
 	err = m.cmd.Wait()
 	if err != nil {
-		fmt.Println("\n ")
 		return err
 	}
 
@@ -114,6 +113,7 @@ func (m *Maven) Run(v bool) error {
 func printLog(s *bufio.Scanner, wg *sync.WaitGroup) {
 	failedTests := false
 	queue := make([]*spinner.Spinner, 0)
+	//TODO: Handle Packaging output
 	for s.Scan() {
 		if strings.Contains(s.Text(), "Failed tests:") {
 			failedTests = true
