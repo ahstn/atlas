@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"fmt"
 	"path"
 
 	"github.com/ahstn/atlas/builder"
 	"github.com/ahstn/atlas/config"
 	"github.com/ahstn/atlas/flag"
 	"github.com/urfave/cli"
+	emoji "gopkg.in/kyokomi/emoji.v1"
 )
 
 // Project defines the command for the cli to process an entire project
@@ -41,10 +41,11 @@ func ProjectAction(c *cli.Context) error {
 		panic(err)
 	}
 
-	fmt.Printf("Operating in base directory: [%v]\n", cfg.Root)
+	emoji.Printf(":file_folder:Operating in base directory [%v]\n", cfg.Root)
 	for _, app := range cfg.Services {
-		fmt.Printf("\nBuilding: %v [%v]\n", app.Name, path.Join(cfg.Root, app.Name))
-		createAndRunBuilder(path.Join(cfg.Root, app.Name), app, c)
+		cwd := path.Join(cfg.Root, app.Name)
+		emoji.Printf("\n:wrench:Building: %v [%v]...\n", app.Name, cwd)
+		createAndRunBuilder(cwd, app, c)
 	}
 
 	return nil
