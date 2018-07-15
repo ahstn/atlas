@@ -11,6 +11,8 @@ import (
 
 func main() {
 	app := &cli.App{
+		Name:  "atlas",
+		Usage: "Make Development Great Again",
 		Commands: []cli.Command{
 			cmd.Build,
 			cmd.Project,
