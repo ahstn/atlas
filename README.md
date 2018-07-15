@@ -1,6 +1,9 @@
 # atlas
 > Make Development Great Again
 
+[![GoDoc](https://godoc.org/github.com/ahstn/atlas?status.svg)](https://godoc.org/github.com/ahstn/atlas)
+[![Go Report Card](https://goreportcard.com/badge/ahstn/atlas)](https://goreportcard.com/report/ahstn/atlas)
+
 **WORK IN PROGRESS. Only for dev and experimental use.**
 
 ## Introduction
