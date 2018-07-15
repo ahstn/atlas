@@ -14,6 +14,7 @@ func main() {
 		Commands: []cli.Command{
 			cmd.Build,
 			cmd.Project,
+			cmd.Repo,
 		},
 		Flags: []cli.Flag{
 			flag.SkipTests,
