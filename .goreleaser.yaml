@@ -1,0 +1,20 @@
+# https://goreleaser.com
+
+project_name: atlas
+builds:
+  - binary: atlas
+    env: 
+      - CGO_ENABLED = 0
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs'
+      - '^tests'
+      - 'Merge'
