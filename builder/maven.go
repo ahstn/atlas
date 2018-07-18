@@ -13,10 +13,6 @@ import (
 	"github.com/briandowns/spinner"
 )
 
-func getPath() (string, error) {
-	return "/usr/bin/mvn", nil
-}
-
 // Maven is a implmentation of Builder{} for Java
 type Maven struct {
 	Dir string
@@ -25,7 +21,7 @@ type Maven struct {
 
 func (m *Maven) initialiseCommand() {
 	if m.cmd.Path == "" {
-		path, err := getPath()
+		path, err := exec.LookPath("mvn")
 		if err != nil {
 			log.Info("unable to find path (mvn)")
 		}
