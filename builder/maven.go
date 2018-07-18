@@ -13,10 +13,6 @@ import (
 	"github.com/briandowns/spinner"
 )
 
-func getPath() (string, error) {
-	return "/usr/bin/mvn", nil
-}
-
 // Maven is a implmentation of Builder{} for Java
 type Maven struct {
 	Dir string
