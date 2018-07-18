@@ -3,7 +3,7 @@
 project_name: atlas
 builds:
   - binary: atlas
-    env: 
+    env:
       - CGO_ENABLED = 0
     goos:
       - windows
@@ -11,6 +11,24 @@ builds:
       - linux
     goarch:
       - amd64
+
+archive:
+  replacements:
+    darwin: macOS
+  format: binary
+
+nfpm:
+  maintainer: Adam Houston <AdamHouston_@live.co.uk>
+  description: Swiss army-knife for software building and development.
+  license: MIT
+  formats:
+    - rpm
+    - deb
+  recommends:
+    - git
+    - docker
+    - mvn
+
 changelog:
   sort: asc
   filters:
