@@ -17,6 +17,7 @@ func main() {
 			cmd.Build,
 			cmd.Project,
 			cmd.Repo,
+			cmd.Issues,
 		},
 		Flags: []cli.Flag{
 			flag.SkipTests,
