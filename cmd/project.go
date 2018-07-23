@@ -15,7 +15,7 @@ import (
 var Project = cli.Command{
 	Name:    "project",
 	Aliases: []string{"p"},
-	Usage:   "Build Project (Collection of Services)",
+	Usage:   "build project (collection of services)",
 	Action:  ProjectAction,
 	Flags: []cli.Flag{
 		flag.Config,
