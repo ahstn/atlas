@@ -3,9 +3,9 @@ package cmd
 import (
 	"archive/tar"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -20,6 +20,31 @@ var Docker = cli.Command{
 	Aliases: []string{"d"},
 	Usage:   "execute the application build process",
 	Action:  DockerAction,
+}
+
+// StreamError defines an error that occured during a Docker event
+type StreamError struct {
+	Code    int    `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+// Stream is used by Docker for communicating event responses
+type Stream struct {
+	Stream string      `json:"stream,omitempty"`
+	Status string      `json:"status,omitempty"`
+	Error  StreamError `json:"error,omitempty"`
+}
+
+// ErrorMsg is a helper method for fetching any errors
+func (s Stream) ErrorMsg() string {
+	return s.Error.Message
+}
+
+// Print outputs any valid stream content to the io.Writer passed in
+func (s Stream) Print(w *io.Writer) {
+	if s.Stream != "" {
+		fmt.Println(s.Stream)
+	}
 }
 
 const (
@@ -60,12 +85,26 @@ func DockerAction(c *cli.Context) error {
 	}
 
 	defer res.Body.Close()
+	w := new(io.Writer)
+	return PrintStream(res.Body, w)
+}
 
-	bodyBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
+// PrintStream decodes the Docker output from io.Reader and outputs it to
+// the io.Writer
+func PrintStream(r io.Reader, w *io.Writer) error {
+	decoder := json.NewDecoder(r)
+
+	var ds Stream
+	for {
+		if err := decoder.Decode(&ds); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+
+		ds.Print(w)
 	}
-	fmt.Println(string(bodyBytes))
 
 	return nil
 }
