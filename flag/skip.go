@@ -3,6 +3,6 @@ package flag
 import "github.com/urfave/cli"
 
 var SkipTests = cli.BoolTFlag{
-	Name:  "s, skipTests",
+	Name:  "skipTests, s",
 	Usage: "skip tests",
 }
