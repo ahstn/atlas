@@ -14,12 +14,12 @@ type Project struct {
 
 // Service is a single buildable application
 type Service struct {
-	Docker  Docker   `yaml:"docker"`
-	Package Package  `yaml:"package"`
-	Name    string   `yaml:"name"`
-	Repo    string   `yaml:"repo"`
-	Tasks   []string `yaml:"tasks"`
-	Test    bool     `yaml:"test"`
+	DockerArtifact DockerArtifact `yaml:"docker"`
+	Package        Package        `yaml:"package"`
+	Name           string         `yaml:"name"`
+	Repo           string         `yaml:"repo"`
+	Tasks          []string       `yaml:"tasks"`
+	Test           bool           `yaml:"test"`
 }
 
 // HasTask is a helper function for detecting package task
@@ -37,10 +37,12 @@ func (s Service) HasPackageSubDir() bool {
 	return s.Package.SubDir != ""
 }
 
-// Docker stores container information relating to the build
-type Docker struct {
-	Dockerfile string `yaml:"dockerfile"`
-	Enabled    bool   `yaml:"enabled"`
+// DockerArtifact stores container information relating to the build
+type DockerArtifact struct {
+	Args       []string `yaml:"args"`
+	Dockerfile string   `yaml:"dockerfile"`
+	Enabled    bool     `yaml:"enabled"`
+	Tag        string   `yaml:"tag"`
 }
 
 // Package stores packaging information relating to the build

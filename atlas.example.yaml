@@ -18,6 +18,9 @@ services:
     docker:
       dockerfile: ./web/Dockerfile
       enabled: false
+      args:
+        - "JAVA_VERSION=8"
+      tag: auth:1.3.0
     name: web
     repo: "https://github.com/ahstn/web"
     tasks:
