@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ahstn/atlas/pb"
+	"github.com/ahstn/atlas/pkg/pb"
 	"github.com/apex/log"
 	"github.com/briandowns/spinner"
 )

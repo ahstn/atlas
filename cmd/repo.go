@@ -15,7 +15,7 @@ import (
 var Repo = cli.Command{
 	Name:    "repo",
 	Aliases: []string{"r"},
-	Usage:   "Open Git repo in browser",
+	Usage:   "open Git repo in browser",
 	Action:  RepoAction,
 }
 
