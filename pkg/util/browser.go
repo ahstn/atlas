@@ -40,7 +40,7 @@ func ProcessRepoURL(r string) (string, error) {
 	return "", errors.New("could not process Git repo url")
 }
 
-//TODO:
+//TODO: Abstract logic from ProcessRepoURL + ProcessIssuesURL
 // ProcessIssuesURL sanitizes URL
 // func ProcessIssuesURL(r string) (string, error) {
 // 	if strings.Contains(r, "git@") {

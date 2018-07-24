@@ -9,7 +9,7 @@
 ## Introduction
 `atlas` is a CLI tool that leverages development applications to make common tasks more efficient.
 One of the main purposes is to make builds simpler across multiple repos while providing an aesthetic user interface.
-
+<!--//TODO: Update commands with issues-->
 ```
 ➜ atlas help
 NAME:

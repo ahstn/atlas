@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/ahstn/atlas/util"
+	"github.com/ahstn/atlas/pkg/util"
 	"github.com/urfave/cli"
 	emoji "gopkg.in/kyokomi/emoji.v1"
 )
