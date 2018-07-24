@@ -2,8 +2,10 @@ package docker
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"strings"
 )
 
 // StreamError defines an error that occured during a Docker event
@@ -16,7 +18,7 @@ type StreamError struct {
 type Stream struct {
 	Stream string      `json:"stream,omitempty"`
 	Status string      `json:"status,omitempty"`
-	Error  StreamError `json:"error,omitempty"`
+	Error  StreamError `json:"errorDetail,omitempty"`
 }
 
 // ErrorMsg is a helper method for fetching any errors
@@ -25,10 +27,17 @@ func (s Stream) ErrorMsg() string {
 }
 
 // Print outputs any valid stream content to the io.Writer passed in
-func (s Stream) Print() {
-	if s.Stream != "" {
+func (s Stream) Print() error {
+	if s.ErrorMsg() != "" {
+		return errors.New(s.ErrorMsg())
+	}
+
+	s.Stream = strings.TrimSpace(s.Stream)
+	if strings.Contains(s.Stream, "Step") {
 		fmt.Println(s.Stream)
 	}
+
+	return nil
 }
 
 // PrintStream decodes the Docker output from io.Reader and outputs it to
@@ -45,7 +54,10 @@ func PrintStream(r io.Reader) error {
 			return err
 		}
 
-		ds.Print()
+		err := ds.Print()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
