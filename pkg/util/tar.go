@@ -2,7 +2,6 @@ package util
 
 import (
 	"archive/tar"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -18,7 +17,6 @@ func CreateArchive(p string, w io.Writer) error {
 			return err
 		}
 
-		fmt.Println(file)
 		header, err := tar.FileInfoHeader(fi, file)
 		if err != nil {
 			return err
