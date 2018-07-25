@@ -4,15 +4,17 @@ import (
 	"log"
 	"os"
 
-	"github.com/ahstn/atlas/cmd"
-	"github.com/ahstn/atlas/flag"
+	"github.com/ahstn/atlas/cmd/atlas/cmd"
+	"github.com/ahstn/atlas/cmd/atlas/flag"
 	"github.com/urfave/cli"
 )
 
 func main() {
 	app := &cli.App{
-		Name:  "atlas",
-		Usage: "Make Development Great Again",
+		Name:     "atlas",
+		Usage:    "Make Development Great Again",
+		Version:  "0.1.0-beta-3",
+		HelpName: "atlas",
 		Commands: []cli.Command{
 			cmd.Build,
 			cmd.Project,
