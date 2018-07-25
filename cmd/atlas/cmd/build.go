@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/ahstn/atlas/flag"
+	"github.com/ahstn/atlas/cmd/atlas/flag"
 	"github.com/ahstn/atlas/pkg/builder"
 	"github.com/apex/log"
 	"github.com/urfave/cli"
