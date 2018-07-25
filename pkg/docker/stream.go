@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/ahstn/atlas/pkg/pb"
+	"github.com/briandowns/spinner"
 )
 
 // StreamError defines an error that occured during a Docker event
@@ -28,13 +31,11 @@ func (s Stream) ErrorMsg() string {
 
 // Print outputs any valid stream content to the io.Writer passed in
 func (s Stream) Print() error {
-	if s.ErrorMsg() != "" {
-		return errors.New(s.ErrorMsg())
-	}
 
 	s.Stream = strings.TrimSpace(s.Stream)
 	if strings.Contains(s.Stream, "Step") {
 		fmt.Println(s.Stream)
+
 	}
 
 	return nil
@@ -46,6 +47,7 @@ func PrintStream(r io.Reader) error {
 	decoder := json.NewDecoder(r)
 
 	var ds Stream
+	queue := make([]*spinner.Spinner, 0)
 	for {
 		if err := decoder.Decode(&ds); err != nil {
 			if err == io.EOF {
@@ -54,10 +56,28 @@ func PrintStream(r io.Reader) error {
 			return err
 		}
 
-		err := ds.Print()
-		if err != nil {
-			return err
+		if ds.ErrorMsg() != "" {
+			return errors.New(ds.ErrorMsg())
 		}
+
+		if strings.Contains(ds.Stream, "Step") {
+			formatted := strings.Replace(ds.Stream, "Step ", "[", 1)
+			formatted = strings.Replace(formatted, " : ", "]: ", 1)
+
+			if len(queue) != 0 {
+				x := queue[0]
+				x.Stop()
+				queue = queue[1:]
+			}
+
+			spinner := pb.CreateAndStartBuildSpinner(formatted)
+			queue = append(queue, spinner)
+		}
+
+	}
+	for _, x := range queue {
+		x.Stop()
+		queue = queue[1:]
 	}
 
 	return nil

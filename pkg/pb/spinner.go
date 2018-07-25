@@ -8,8 +8,8 @@ import (
 )
 
 func CreateAndStartBuildSpinner(title string) *spinner.Spinner {
-	s := spinner.New(spinner.CharSets[24], 100*time.Millisecond)
-	s.Color("blue")
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s.Color("fgHiCyan")
 	s.Prefix = " "
 	s.Suffix = fmt.Sprintf("  %s Building ...", title)
 	s.FinalMSG = fmt.Sprintf("  ✔ %s Complete\n", title)
@@ -18,9 +18,9 @@ func CreateAndStartBuildSpinner(title string) *spinner.Spinner {
 }
 
 func RunSpinner(title string) {
-	s := spinner.New(spinner.CharSets[24], 100*time.Millisecond) // Build our new spinner
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond) // Build our new spinner
 	s.Start()                                                    // Start the spinner
-	s.Color("blue")
+	s.Color("fgHiCyan")
 	s.Prefix = " "
 	s.Suffix = fmt.Sprintf(" %s...", title)
 	s.FinalMSG = " ✔ Complete\n"

@@ -11,7 +11,7 @@ import (
 var Docker = cli.Command{
 	Name:    "docker",
 	Aliases: []string{"d"},
-	Usage:   "execute the application build process",
+	Usage:   "build an application's Dockerfile",
 	Action:  DockerAction,
 }
 
