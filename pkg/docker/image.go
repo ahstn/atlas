@@ -3,7 +3,9 @@ package docker
 import (
 	"context"
 	"io"
+	"strings"
 
+	"github.com/ahstn/atlas/pkg/config"
 	"github.com/ahstn/atlas/pkg/util"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -19,20 +21,26 @@ var (
 )
 
 // ImageBuild takes a DockerArtifact and uses the Docker daemon for building
-func ImageBuild(c context.Context) error {
+// TODO: Path and Dockerfile must be relative (i.e. "./" and "./Dockerfile")
+func ImageBuild(c context.Context, d config.DockerArtifact) error {
 	r, w := io.Pipe()
 	go func() {
-		err := util.CreateArchive(".", w)
+		err := util.CreateArchive(d.Path, w)
 		if err != nil {
 			panic(err)
 		}
 		w.Close()
 	}()
 
+	args, err := ParseBuildArgsFromFlag(d.Args)
+	if err != nil {
+		panic(err)
+	}
+
 	opts := types.ImageBuildOptions{
-		Tags:       []string{"atlas-dockerfile:test"},
-		Dockerfile: "./Dockerfile",
-		BuildArgs:  map[string]*string(nil),
+		Tags:       []string{d.Tag},
+		Dockerfile: d.Dockerfile,
+		BuildArgs:  args,
 	}
 
 	cli, err := client.NewClient(apiSocket, apiVersion, nil, apiHeaders)
@@ -43,4 +51,20 @@ func ImageBuild(c context.Context) error {
 
 	defer res.Body.Close()
 	return PrintStream(res.Body)
+}
+
+// ParseBuildArgsFromFlag writes args from a flag string array to a map
+// Example input: []string{"VERSION=1.8.0", "LANG=Go", "BUILDER=Docker"}
+func ParseBuildArgsFromFlag(s []string) (map[string]*string, error) {
+	if len(s) == 0 {
+		return map[string]*string(nil), nil
+	}
+
+	m := make(map[string]*string)
+	for _, arg := range s {
+		a := strings.Split(strings.TrimSpace(arg), "=")
+		m[a[0]] = &a[1]
+	}
+
+	return m, nil
 }
