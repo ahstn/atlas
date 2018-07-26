@@ -2,14 +2,16 @@ package cmd
 
 import (
 	"context"
+	"path"
 
 	"github.com/ahstn/atlas/cmd/atlas/flag"
+	"github.com/ahstn/atlas/pkg/config"
 	"github.com/ahstn/atlas/pkg/docker"
 	"github.com/urfave/cli"
 )
 
 // Docker defines the command for the cli and the logic to utilise Docker
-// i.e docker build --tag atlas:1.0.0 --args VERSION=0.1.0, LANG=go
+// i.e atlas docker --tag atlas:1.0.0 --arg VERSION=0.1.0 --arg LANG=go'
 var Docker = cli.Command{
 	Name:      "docker",
 	Aliases:   []string{"d"},
@@ -22,8 +24,8 @@ var Docker = cli.Command{
 			Usage: "name and tag image in the `name:tag` format",
 		},
 		cli.StringSliceFlag{
-			Name:  "args, a",
-			Usage: "build arguments in the `arg:value` format (comma seperated)",
+			Name:  "arg, a",
+			Usage: "build arguments in the `arg=value` format (space seperated)",
 		},
 		flag.Config,
 		flag.Verbose,
@@ -34,5 +36,26 @@ var Docker = cli.Command{
 func DockerAction(c *cli.Context) error {
 	ctx := context.Background()
 
-	return docker.ImageBuild(ctx)
+	p, err := docker.ValidateArguments(c.Args().First())
+	if err != nil {
+		panic(err)
+	}
+
+	t, err := docker.ValidateTag(c.String("tag"))
+	if err != nil {
+		panic(err)
+	}
+
+	a, err := docker.ValidateBuildArgs(c.StringSlice("args"))
+	if err != nil {
+		panic(err)
+	}
+
+	artifact := config.DockerArtifact{
+		Tag:        t,
+		Args:       a,
+		Path:       p,
+		Dockerfile: path.Join(p, "Dockerfile"),
+	}
+	return docker.ImageBuild(ctx, artifact)
 }
