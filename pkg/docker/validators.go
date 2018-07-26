@@ -47,7 +47,9 @@ func ValidateBuildArgs(s []string) ([]string, error) {
 	for _, arg := range s {
 		fmt.Println(arg)
 		if !strings.Contains(arg, "=") {
-			return nil, errors.New("invalid arg - must be in `key=value` format")
+			return nil, errors.New("arg has no value - must be in `key=value` format")
+		} else if arg[len(arg)-1] == '=' {
+			return nil, errors.New("arg has no value - must be in `key=value` format")
 		} else if strings.Count(arg, "=") > 1 {
 			return nil, errors.New("invalid arg - must be in `key=value` format")
 		}
