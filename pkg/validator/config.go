@@ -1,4 +1,4 @@
-package config
+package validator
 
 import (
 	"errors"
@@ -57,25 +57,5 @@ func ValidateConfigBaseDir(s string) (string, error) {
 // ValidateDockerConfig ensures the docker configs contents are valid
 // TODO : Add more validation cases when DockerArtifact struct is made
 func ValidateDockerConfig(d string) error {
-	return validateDockerTag(d)
-
-}
-
-func validateDockerTag(t string) error {
-	if !strings.Contains(t, ":") {
-		return errDockerTagVersion
-	}
-
-	if t[0] == ':' || t[0] == '/' {
-		return errDockerConfig
-	} else if t[len(t)-1] == ':' || t[len(t)-1] == '/' {
-		return errDockerTag
-	}
-
-	versionStart := strings.Index(t, ":")
-	if len(t[:versionStart]) < 1 || len(t[versionStart:]) < 1 {
-		return errDockerTag
-	}
-
-	return nil
+	return ValidateTag(d)
 }

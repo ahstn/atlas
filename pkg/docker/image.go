@@ -3,6 +3,8 @@ package docker
 import (
 	"context"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/ahstn/atlas/pkg/config"
@@ -24,8 +26,19 @@ var (
 // TODO: Path and Dockerfile must be relative (i.e. "./" and "./Dockerfile")
 func ImageBuild(c context.Context, d config.DockerArtifact) error {
 	r, w := io.Pipe()
+
+	path, err := AbsToRelPath(d.Path)
+	if err != nil {
+		return err
+	}
+
+	dockerfile, err := AbsToRelPath(d.Dockerfile)
+	if err != nil {
+		return err
+	}
+
 	go func() {
-		err := util.CreateArchive(d.Path, w)
+		err := util.CreateArchive(path, w)
 		if err != nil {
 			panic(err)
 		}
@@ -39,7 +52,7 @@ func ImageBuild(c context.Context, d config.DockerArtifact) error {
 
 	opts := types.ImageBuildOptions{
 		Tags:       []string{d.Tag},
-		Dockerfile: d.Dockerfile,
+		Dockerfile: dockerfile,
 		BuildArgs:  args,
 	}
 
@@ -67,4 +80,13 @@ func ParseBuildArgsFromFlag(s []string) (map[string]*string, error) {
 	}
 
 	return m, nil
+}
+
+func AbsToRelPath(p string) (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Rel(wd, p)
 }

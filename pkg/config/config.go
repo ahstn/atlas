@@ -2,7 +2,9 @@ package config
 
 import (
 	"io/ioutil"
+	"path/filepath"
 
+	"github.com/ahstn/atlas/pkg/validator"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -14,12 +16,12 @@ type Project struct {
 
 // Service is a single buildable application
 type Service struct {
-	DockerArtifact DockerArtifact `yaml:"docker"`
-	Package        Package        `yaml:"package"`
-	Name           string         `yaml:"name"`
-	Repo           string         `yaml:"repo"`
-	Tasks          []string       `yaml:"tasks"`
-	Test           bool           `yaml:"test"`
+	Docker  DockerArtifact `yaml:"docker"`
+	Package Package        `yaml:"package"`
+	Name    string         `yaml:"name"`
+	Repo    string         `yaml:"repo"`
+	Tasks   []string       `yaml:"tasks"`
+	Test    bool           `yaml:"test"`
 }
 
 // HasTask is a helper function for detecting package task
@@ -67,11 +69,15 @@ func Read(path string) (Project, error) {
 		return Project{}, err
 	}
 
-	s, err := ValidateConfigBaseDir(p.Root)
+	s, err := validator.ValidateConfigBaseDir(p.Root)
 	if err != nil {
 		return Project{}, err
 	}
 	p.Root = s
+
+	for _, svc := range p.Services {
+		svc.Docker.Path = filepath.Join(p.Root, svc.Name)
+	}
 
 	return p, nil
 }
