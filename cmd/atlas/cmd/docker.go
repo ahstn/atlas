@@ -7,6 +7,7 @@ import (
 	"github.com/ahstn/atlas/cmd/atlas/flag"
 	"github.com/ahstn/atlas/pkg/config"
 	"github.com/ahstn/atlas/pkg/docker"
+	"github.com/ahstn/atlas/pkg/validator"
 	"github.com/urfave/cli"
 )
 
@@ -36,24 +37,24 @@ var Docker = cli.Command{
 func DockerAction(c *cli.Context) error {
 	ctx := context.Background()
 
-	p, err := docker.ValidateArguments(c.Args().First())
+	p, err := validator.ValidateArguments(c.Args().First())
 	if err != nil {
 		panic(err)
 	}
 
-	t, err := docker.ValidateTag(c.String("tag"))
+	err = validator.ValidateTag(c.String("tag"))
 	if err != nil {
 		panic(err)
 	}
 
-	a, err := docker.ValidateBuildArgs(c.StringSlice("args"))
+	err = validator.ValidateBuildArgs(c.StringSlice("args"))
 	if err != nil {
 		panic(err)
 	}
 
 	artifact := config.DockerArtifact{
-		Tag:        t,
-		Args:       a,
+		Tag:        c.String("tag"),
+		Args:       c.StringSlice("args"),
 		Path:       p,
 		Dockerfile: path.Join(p, "Dockerfile"),
 	}

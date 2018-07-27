@@ -1,4 +1,4 @@
-package docker
+package validator
 
 import (
 	"errors"
@@ -30,30 +30,30 @@ func ValidateArguments(s string) (string, error) {
 }
 
 // ValidateTag verifies that the tag argument is valid
-func ValidateTag(s string) (string, error) {
+func ValidateTag(s string) error {
 	if !strings.Contains(s, ":") {
-		return "", errors.New("invalid tag - you must specify a version")
+		return errors.New("invalid tag - you must specify a version")
 	} else if s[0] == '/' || s[0] == ':' {
-		return "", errors.New("invalid tag - must not start with '/' or ':'")
+		return errors.New("invalid tag - must not start with '/' or ':'")
 	} else if s[len(s)-1] == '/' || s[len(s)-1] == ':' {
-		return "", errors.New("invalid tag - must not end with '/' or ':'")
+		return errors.New("invalid tag - must not end with '/' or ':'")
 	}
 
-	return s, nil
+	return nil
 }
 
 // ValidateBuildArgs verifies that the args present are valid
-func ValidateBuildArgs(s []string) ([]string, error) {
+func ValidateBuildArgs(s []string) error {
 	for _, arg := range s {
 		fmt.Println(arg)
 		if !strings.Contains(arg, "=") {
-			return nil, errors.New("arg has no value - must be in `key=value` format")
+			return errors.New("arg has no value - must be in `key=value` format")
 		} else if arg[len(arg)-1] == '=' {
-			return nil, errors.New("arg has no value - must be in `key=value` format")
+			return errors.New("arg has no value - must be in `key=value` format")
 		} else if strings.Count(arg, "=") > 1 {
-			return nil, errors.New("invalid arg - must be in `key=value` format")
+			return errors.New("invalid arg - must be in `key=value` format")
 		}
 	}
 
-	return s, nil
+	return nil
 }
