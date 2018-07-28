@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -23,12 +24,16 @@ var (
 )
 
 // ImageBuild takes a DockerArtifact and uses the Docker daemon for building
-// TODO: Path and Dockerfile must be relative (i.e. "./" and "./Dockerfile")
 func ImageBuild(c context.Context, d config.DockerArtifact) error {
 	r, w := io.Pipe()
+	err := os.Chdir(d.Path) // Must be in app dir when building
+	if err != nil {
+		return err
+	}
 
 	path, err := AbsToRelPath(d.Path)
 	if err != nil {
+		fmt.Println("[ImageBuild] Can't get rel")
 		return err
 	}
 
@@ -47,7 +52,7 @@ func ImageBuild(c context.Context, d config.DockerArtifact) error {
 
 	args, err := ParseBuildArgsFromFlag(d.Args)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	opts := types.ImageBuildOptions{
@@ -59,7 +64,7 @@ func ImageBuild(c context.Context, d config.DockerArtifact) error {
 	cli, err := client.NewClient(apiSocket, apiVersion, nil, apiHeaders)
 	res, err := cli.ImageBuild(c, r, opts)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	defer res.Body.Close()
@@ -82,6 +87,9 @@ func ParseBuildArgsFromFlag(s []string) (map[string]*string, error) {
 	return m, nil
 }
 
+// AbsToRelPath is a helper method for converting absolute paths to paths
+// relative to the present working directory
+// This is due to Docker requiring relative paths when building
 func AbsToRelPath(p string) (string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
