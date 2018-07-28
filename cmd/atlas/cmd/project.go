@@ -1,11 +1,13 @@
 package cmd
 
 import (
-	"path"
+	"context"
 
 	"github.com/ahstn/atlas/cmd/atlas/flag"
 	"github.com/ahstn/atlas/pkg/builder"
 	"github.com/ahstn/atlas/pkg/config"
+	"github.com/ahstn/atlas/pkg/docker"
+	"github.com/ahstn/atlas/pkg/validator"
 	"github.com/urfave/cli"
 	emoji "gopkg.in/kyokomi/emoji.v1"
 )
@@ -27,12 +29,12 @@ var Project = cli.Command{
 // ProjectAction executes the logic to read a project file and build it's apps
 // TODO: Proper logging and error handling
 func ProjectAction(c *cli.Context) error {
-	f, err := config.ValidateExists(c.String("config"))
+	f, err := validator.ValidateExists(c.String("config"))
 	if err != nil {
 		panic(err)
 	}
 
-	if err = config.ValidateConfig(f); err != nil {
+	if err = validator.ValidateConfig(f); err != nil {
 		panic(err)
 	}
 
@@ -43,9 +45,13 @@ func ProjectAction(c *cli.Context) error {
 
 	emoji.Printf(":file_folder:Operating in base directory [%v]\n", cfg.Root)
 	for _, app := range cfg.Services {
-		cwd := path.Join(cfg.Root, app.Name)
-		emoji.Printf("\n:wrench:Building: %v [%v]...\n", app.Name, cwd)
-		createAndRunBuilder(cwd, app, c)
+		emoji.Printf("\n:wrench:Building: %v [%v]...\n", app.Name, app.Path)
+		createAndRunBuilder(app.Path, *app, c)
+
+		emoji.Printf("\n:wrench:Building Dockerfile: %v [%v]...\n", app.Name, app.Path)
+		if err != runDockerBuild(app.Path, *app) {
+			panic(err)
+		}
 	}
 
 	return nil
@@ -82,4 +88,13 @@ func createAndRunBuilder(p string, app config.Service, c *cli.Context) {
 			panic(err)
 		}
 	}
+}
+
+func runDockerBuild(p string, app config.Service) error {
+	if !app.Docker.Enabled {
+		return nil
+	}
+
+	ctx := context.Background()
+	return docker.ImageBuild(ctx, app.Docker)
 }

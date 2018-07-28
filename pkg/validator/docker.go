@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -56,4 +57,26 @@ func ValidateBuildArgs(s []string) error {
 	}
 
 	return nil
+}
+
+// TryFindDockerfile scans a base path for any file matching 'Dockerfile'
+func TryFindDockerfile(base string) (string, error) {
+	var df string
+	filepath.Walk(base, func(path string, f os.FileInfo, _ error) error {
+		if !f.IsDir() {
+			r, err := regexp.MatchString("Dockerfile", f.Name())
+			if err == nil && r {
+				df = f.Name()
+				return nil
+			}
+		}
+
+		return nil
+	})
+
+	if df == "" {
+		return "", errors.New("no Dockerfile specifed and unable to locate one")
+	}
+
+	return df, nil
 }

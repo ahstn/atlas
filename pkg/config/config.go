@@ -10,18 +10,19 @@ import (
 
 // Project is what define an collection of applications to be built
 type Project struct {
-	Root     string    `yaml:"root"`
-	Services []Service `yaml:"services"`
+	Root     string     `yaml:"root"`
+	Services []*Service `yaml:"services"`
 }
 
 // Service is a single buildable application
 type Service struct {
-	Docker  DockerArtifact `yaml:"docker"`
-	Package Package        `yaml:"package"`
-	Name    string         `yaml:"name"`
-	Repo    string         `yaml:"repo"`
-	Tasks   []string       `yaml:"tasks"`
-	Test    bool           `yaml:"test"`
+	Docker  DockerArtifact `yaml:"docker" json:"docker,omitempty"`
+	Package Package        `yaml:"package" json:"package,omitempty"`
+	Name    string         `yaml:"name" json:"name,omitempty"`
+	Repo    string         `yaml:"repo" json:"repo,omitempty"`
+	Path    string         `yaml:"path" json:"path,omitempty"`
+	Tasks   []string       `yaml:"tasks" json:"tasks,omitempty"`
+	Test    bool           `yaml:"test" json:"test,omitempty"`
 }
 
 // HasTask is a helper function for detecting package task
@@ -75,8 +76,23 @@ func Read(path string) (Project, error) {
 	}
 	p.Root = s
 
+	// Validate Docker fields and add metadata
 	for _, svc := range p.Services {
-		svc.Docker.Path = filepath.Join(p.Root, svc.Name)
+		svc.Path = filepath.Join(p.Root, svc.Name)
+		svc.Docker.Path = filepath.Join(svc.Path, svc.Docker.Path)
+
+		if err := validator.ValidateBuildArgs(svc.Docker.Args); err != nil {
+			return Project{}, err
+		}
+
+		if svc.Docker.Dockerfile == "" {
+			svc.Docker.Dockerfile, err = validator.TryFindDockerfile(svc.Path)
+			if err != nil {
+				return Project{}, err
+			}
+		}
+
+		svc.Docker.Dockerfile = filepath.Join(svc.Path, svc.Docker.Dockerfile)
 	}
 
 	return p, nil
