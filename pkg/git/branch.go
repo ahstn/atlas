@@ -1,17 +1,28 @@
 package git
 
 import (
+	"os/exec"
 	"strings"
+
+	emoji "gopkg.in/kyokomi/emoji.v1"
 )
 
-// DetermineBranchType establish branch type given output from 'git branch'
-func DetermineBranchType(branch string) string {
-	branch = strings.ToLower(branch)
-
+// BranchLogMessage establish branch type from given branch name
+func BranchLogMessage(branch, url string) string {
 	if strings.Contains(branch, "develop") || strings.Contains(branch, "master") {
-		return "develop"
+		return emoji.Sprintf(":globe_with_meridians:Opening Repo Issue URL: %v", url)
 	}
+	return emoji.Sprintf(":globe_with_meridians:Opening Feature Issue URL: %v", url)
+}
 
-	return "feature"
+// Branch getter function for git branch
+func Branch() (string, error) {
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+	branch := string(out)
 
+	return strings.TrimSpace(strings.ToLower(branch)), nil
 }
