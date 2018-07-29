@@ -8,10 +8,9 @@ import (
 	"strings"
 )
 
-var (
-	errDockerConfig     = errors.New("incorrect docker config")
-	errDockerTag        = errors.New("incorrect docker config - invalid tag")
-	errDockerTagVersion = errors.New("incorrect docker config - tag missing version")
+const (
+	errCfgMissing = "config does not exist in ~/.config/atlas/ or pwd"
+	errCfgFormat  = "config should be a .yaml file"
 )
 
 // ValidateExists verifies that the config file is present
@@ -19,11 +18,11 @@ var (
 // param: s should the filename (not filepath)
 func ValidateExists(s string) (string, error) {
 	pwd := path.Join(os.Getenv("PWD"), filepath.Base(s))
-	home := path.Join(os.Getenv("HOME"), ".config.atlas/", filepath.Base(s))
+	home := path.Join(os.Getenv("HOME"), ".config/atlas/", filepath.Base(s))
 
 	if _, err := os.Stat(pwd); os.IsNotExist(err) {
 		if _, err := os.Stat(home); os.IsNotExist(err) {
-			return "", errors.New("config does not exist in ~/.config/atlas/ or pwd")
+			return "", errors.New(errCfgMissing)
 		}
 		return home, nil
 	}
@@ -34,7 +33,7 @@ func ValidateExists(s string) (string, error) {
 // param: s should be the full fil path
 func ValidateConfig(s string) error {
 	if !strings.Contains(s, ".yaml") {
-		return errors.New("config should be a .yaml file")
+		return errors.New(errCfgFormat)
 	}
 
 	return nil

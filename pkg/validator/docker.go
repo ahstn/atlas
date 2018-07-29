@@ -2,7 +2,6 @@ package validator
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -10,12 +9,24 @@ import (
 	"strings"
 )
 
+const (
+	errPath       = "invalid path argument - you must pass a directory"
+	errTagVersion = "invalid tag - you must specify a version"
+	errTagStart   = "invalid tag - must not start with '/' or ':'"
+	errTagEnd     = "invalid tag - must not end with '/' or ':'"
+	errArgMissing = "arg has no value - must be in `key=value` format"
+	errArgInvalid = "invalid arg - must be in `key=value` format"
+	errDockerfile = "no Dockerfile specifed and unable to locate one"
+
+	findDockerfileRegex = "Dockerfile"
+)
+
 // ValidateArguments verifies that the path argument is present
 // If the path is pointing to a file, it returns the directory instead
 // TODO: Default to pwd?
 func ValidateArguments(s string) (string, error) {
 	if s == "" {
-		return "", errors.New("invalid argument - you must pass a directory")
+		return "", errors.New(errPath)
 	}
 
 	info, err := os.Stat(s)
@@ -33,11 +44,11 @@ func ValidateArguments(s string) (string, error) {
 // ValidateTag verifies that the tag argument is valid
 func ValidateTag(s string) error {
 	if !strings.Contains(s, ":") {
-		return errors.New("invalid tag - you must specify a version")
+		return errors.New(errTagVersion)
 	} else if s[0] == '/' || s[0] == ':' {
-		return errors.New("invalid tag - must not start with '/' or ':'")
+		return errors.New(errTagStart)
 	} else if s[len(s)-1] == '/' || s[len(s)-1] == ':' {
-		return errors.New("invalid tag - must not end with '/' or ':'")
+		return errors.New(errTagEnd)
 	}
 
 	return nil
@@ -46,13 +57,12 @@ func ValidateTag(s string) error {
 // ValidateBuildArgs verifies that the args present are valid
 func ValidateBuildArgs(s []string) error {
 	for _, arg := range s {
-		fmt.Println(arg)
 		if !strings.Contains(arg, "=") {
-			return errors.New("arg has no value - must be in `key=value` format")
+			return errors.New(errArgMissing)
 		} else if arg[len(arg)-1] == '=' {
-			return errors.New("arg has no value - must be in `key=value` format")
+			return errors.New(errArgMissing)
 		} else if strings.Count(arg, "=") > 1 {
-			return errors.New("invalid arg - must be in `key=value` format")
+			return errors.New(errArgInvalid)
 		}
 	}
 
@@ -64,7 +74,7 @@ func TryFindDockerfile(base string) (string, error) {
 	var df string
 	filepath.Walk(base, func(path string, f os.FileInfo, _ error) error {
 		if !f.IsDir() {
-			r, err := regexp.MatchString("Dockerfile", f.Name())
+			r, err := regexp.MatchString(findDockerfileRegex, f.Name())
 			if err == nil && r {
 				df = f.Name()
 				return nil
@@ -75,7 +85,7 @@ func TryFindDockerfile(base string) (string, error) {
 	})
 
 	if df == "" {
-		return "", errors.New("no Dockerfile specifed and unable to locate one")
+		return "", errors.New(errDockerfile)
 	}
 
 	return df, nil
