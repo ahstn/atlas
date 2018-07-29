@@ -131,6 +131,7 @@ func printLog(s *bufio.Scanner, wg *sync.WaitGroup) {
 				queue = queue[1:]
 			}
 
+
 			module := strings.SplitAfter(s.Text(), "Building")[1]
 
 			// Replacing full path with project's build directory
