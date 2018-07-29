@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"sync"
 
@@ -130,8 +131,17 @@ func printLog(s *bufio.Scanner, wg *sync.WaitGroup) {
 				queue = queue[1:]
 			}
 
+
+			module := strings.SplitAfter(s.Text(), "Building")[1]
+
+			// Replacing full path with project's build directory
+			if strings.Contains(module, ".jar") {
+				dir := path.Base(os.Getenv("PWD"))
+				module = strings.Replace(module, os.Getenv("PWD"), dir, 1)
+			}
+
 			// Create spinner and add it to the queue of pending builds
-			spinner := pb.CreateAndStartBuildSpinner(s.Text()[20:])
+			spinner := pb.CreateAndStartBuildSpinner(module)
 			queue = append(queue, spinner)
 		}
 	}
