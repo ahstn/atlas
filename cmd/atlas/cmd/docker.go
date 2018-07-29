@@ -47,7 +47,7 @@ func DockerAction(c *cli.Context) error {
 		panic(err)
 	}
 
-	err = validator.ValidateBuildArgs(c.StringSlice("args"))
+	err = validator.ValidateBuildArgs(c.StringSlice("arg"))
 	if err != nil {
 		panic(err)
 	}
