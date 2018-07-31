@@ -23,6 +23,6 @@ func Branch() (string, error) {
 		return "", err
 	}
 	branch := string(out)
-
+	//TODO remove the ToLower here, it would cause issues if issue name was CAPS e.g. DEV-118
 	return strings.TrimSpace(strings.ToLower(branch)), nil
 }

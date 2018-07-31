@@ -33,6 +33,11 @@ func IssuesAction(c *cli.Context) error {
 
 	url = strings.Replace(url, ".git", "/issues/", 1)
 	if !strings.Contains(branch, "develop") && !strings.Contains(branch, "master") {
+		if strings.Count(branch, "-") > 1 {
+			s := strings.SplitAfter(branch, "-")[:2]
+			branch = strings.Join(s, "")
+			branch = strings.TrimSuffix(branch, "-")
+		}
 		branch = strings.SplitAfter(branch, "/")[1]
 		url = url + branch
 	}
