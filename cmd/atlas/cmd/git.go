@@ -29,6 +29,8 @@ var Git = cli.Command{
 			Name:      "branch",
 			Usage:     "create a branch in the services' repo(s) defined in config",
 			ArgsUsage: "[branch name]",
+			Action:    branchAction,
+			Flags:     []cli.Flag{flag.Config},
 		},
 		{
 			Name:      "checkout",
@@ -41,6 +43,7 @@ var Git = cli.Command{
 			Name:    "update",
 			Aliases: []string{"up"},
 			Usage:   "pull updates from remote, but keep local changes",
+			Flags:   []cli.Flag{flag.Config},
 		},
 	},
 	Flags: []cli.Flag{
@@ -66,7 +69,11 @@ func cloneAction(c *cli.Context) error {
 	emoji.Printf(":file_folder:Operating in base directory [%v]\n", cfg.Root)
 	for _, app := range cfg.Services {
 		emoji.Printf("\n:arrow_down:Cloning: %v [%v]...\n", app.Name, app.Repo)
-		git.Clone(cfg.Root, app.Repo, app.Name)
+
+		err := git.Clone(cfg.Root, app.Repo, app.Name)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return nil
@@ -93,5 +100,21 @@ func checkoutAction(c *cli.Context) error {
 }
 
 func branchAction(c *cli.Context) error {
+	f, err := validator.ValidateExists(c.String("config"))
+	if err != nil {
+		panic(err)
+	}
+
+	cfg, err := config.Read(f)
+	if err != nil {
+		panic(err)
+	}
+
+	emoji.Printf(":file_folder:Operating in base directory [%v]", cfg.Root)
+	for _, app := range cfg.Services {
+		emoji.Printf("\n:arrow_down:Cloning: %v [%v]...\n", app.Name, app.Repo)
+		git.CreateBranch(path.Join(cfg.Root, app.Name), c.Args().First())
+	}
+
 	return nil
 }
