@@ -70,7 +70,7 @@ func cloneAction(c *cli.Context) error {
 	for _, app := range cfg.Services {
 		emoji.Printf("\n:arrow_down:Cloning: %v [%v]...\n", app.Name, app.Repo)
 
-		err := git.Clone(cfg.Root, app.Repo, app.Name)
+		_, err := git.Clone(cfg.Root, app.Repo, app.Name)
 		if err != nil {
 			panic(err)
 		}
