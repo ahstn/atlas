@@ -47,10 +47,7 @@ var Git = cli.Command{
 		},
 	},
 	Flags: []cli.Flag{
-		cli.StringSliceFlag{
-			Name:  "exclude, e",
-			Usage: "exclude certain services defined in config from the command",
-		},
+    flag.Exclude
 		flag.Config,
 	},
 }
