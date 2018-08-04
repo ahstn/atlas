@@ -118,3 +118,23 @@ func branchAction(c *cli.Context) error {
 
 	return nil
 }
+
+func updateAction(c *cli.Context) error {
+	f, err := validator.ValidateExists(c.String("config"))
+	if err != nil {
+		panic(err)
+	}
+
+	cfg, err := config.Read(f)
+	if err != nil {
+		panic(err)
+	}
+
+	emoji.Printf(":file_folder:Operating in base directory [%v]", cfg.Root)
+	for _, app := range cfg.Services {
+		emoji.Printf("\n:arrow_down:Updating: %v [%v]...\n", app.Name, app.Repo)
+		git.Update(path.Join(cfg.Root, app.Name))
+	}
+
+	return nil
+}

@@ -9,9 +9,23 @@ import (
 )
 
 const (
+	gitCloneResult        = "Cloning into 'atlas'..."
 	gitCheckoutResult     = "Switched to branch 'master'"
 	gitCreateBranchResult = "Switched to new branch 'feature/testing'"
+	gitUpdateResult       = "Current branch master is up to date."
 )
+
+func TestClone(t *testing.T) {
+	execute = fakeExecCommand
+	defer func() { execute = exec.Command }()
+	out, err := Clone("/tmp/", "https://github.com/ahstn/atlas", "atlas-http")
+	if err != nil {
+		t.Errorf("Expected nil error, got %#v", err)
+	}
+	if string(out) != gitCloneResult {
+		t.Errorf("Expected %q, got %q", gitCloneResult, out)
+	}
+}
 
 func TestCheckout(t *testing.T) {
 	execute = fakeExecCommand
@@ -60,6 +74,15 @@ func TestHelperProcess(t *testing.T) {
 
 	// TODO: Futher Validation
 	switch {
+	case strings.Contains(strings.Join(args, " "), "clone"):
+		fmt.Fprintf(os.Stdout, gitCloneResult)
+	case strings.Contains(strings.Join(args, " "), "pull"):
+		if !strings.Contains(strings.Join(args, " "), "--rebase") {
+			fmt.Fprintf(os.Stderr, "Expected '--rebase' flag. Got: %s", args)
+		} else if !strings.Contains(strings.Join(args, " "), "--prune") {
+			fmt.Fprintf(os.Stderr, "Expected '--prune' flag. Got: %s", args)
+		}
+		fmt.Fprintf(os.Stdout, gitUpdateResult)
 	case strings.Contains(strings.Join(args, " "), "checkout -b"):
 		fmt.Fprintf(os.Stdout, gitCreateBranchResult)
 	case strings.Contains(strings.Join(args, " "), "checkout"):
