@@ -6,7 +6,7 @@ import (
 
 func TestService_HasTask(t *testing.T) {
 	type fields struct {
-		Docker  Docker
+		Docker  DockerArtifact
 		Package Package
 		Name    string
 		Repo    string
@@ -58,7 +58,7 @@ func TestService_HasTask(t *testing.T) {
 
 func TestService_HasPackageSubDir(t *testing.T) {
 	type fields struct {
-		Docker  Docker
+		Docker  DockerArtifact
 		Package Package
 		Name    string
 		Repo    string

@@ -52,7 +52,6 @@ func TestValidateBuildArgs(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []string
 		wantErr bool
 	}{
 		{

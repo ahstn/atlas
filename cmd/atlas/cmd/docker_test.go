@@ -21,14 +21,19 @@ func Test_PanicWithNoArguments(t *testing.T) {
 
 	panics := false
 	var msg interface{}
+	var err error
 	func() {
 		defer func() {
 			if msg = recover(); msg != nil {
 				panics = true
 			}
 		}()
-		app.Run([]string{"foo", "docker"})
+		err = app.Run([]string{"foo", "docker"})
 	}()
+
+	if err != nil {
+		t.Fatal("Unexpected error occured:", err)
+	}
 
 	if !panics {
 		t.Fatal("Expected a panic when no arguments are passed in")
@@ -48,14 +53,19 @@ func Test_PanicWithInvalidTag(t *testing.T) {
 
 	panics := false
 	var msg interface{}
+	var err error
 	func() {
 		defer func() {
 			if msg = recover(); msg != nil {
 				panics = true
 			}
 		}()
-		app.Run([]string{"foo", "docker", "./", "-t", "ahstn"})
+		err = app.Run([]string{"foo", "docker", "./", "-t", "ahstn"})
 	}()
+
+	if err != nil {
+		t.Fatal("Unexpected error occured:", err)
+	}
 
 	if !panics {
 		t.Fatal("Expected a panic when an invalid tag is passed in")
@@ -75,14 +85,19 @@ func Test_PanicWithInvalidBuildArg(t *testing.T) {
 
 	panics := false
 	var msg interface{}
+	var err error
 	func() {
 		defer func() {
 			if msg = recover(); msg != nil {
 				panics = true
 			}
 		}()
-		app.Run([]string{"foo", "docker", "./", "-t", "ahstn:1.0", "-a", "VERSION"})
+		err = app.Run([]string{"foo", "docker", "./", "-t", "ahstn:1.0", "-a", "VERSION"})
 	}()
+
+	if err != nil {
+		t.Fatal("Unexpected error occured:", err)
+	}
 
 	if !panics {
 		t.Fatal("Expected a panic when invalid build args are passed in")

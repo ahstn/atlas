@@ -72,7 +72,7 @@ func ValidateBuildArgs(s []string) error {
 // TryFindDockerfile scans a base path for any file matching 'Dockerfile'
 func TryFindDockerfile(base string) (string, error) {
 	var df string
-	filepath.Walk(base, func(path string, f os.FileInfo, _ error) error {
+	err := filepath.Walk(base, func(path string, f os.FileInfo, _ error) error {
 		if !f.IsDir() {
 			r, err := regexp.MatchString(findDockerfileRegex, f.Name())
 			if err == nil && r {
@@ -84,7 +84,7 @@ func TryFindDockerfile(base string) (string, error) {
 		return nil
 	})
 
-	if df == "" {
+	if df == "" || err != nil {
 		return "", errors.New(errDockerfile)
 	}
 

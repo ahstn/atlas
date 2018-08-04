@@ -62,6 +62,10 @@ func ImageBuild(c context.Context, d config.DockerArtifact) error {
 	}
 
 	cli, err := client.NewClient(apiSocket, apiVersion, nil, apiHeaders)
+	if err != nil {
+		return err
+	}
+
 	res, err := cli.ImageBuild(c, r, opts)
 	if err != nil {
 		return err

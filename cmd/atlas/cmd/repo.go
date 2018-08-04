@@ -33,7 +33,7 @@ func RepoAction(c *cli.Context) error {
 	}
 
 	emoji.Printf(":globe_with_meridians:Opening Repo URL: %v \n", url)
-	openBrowser(url)
+	err = openBrowser(url)
 	if err != nil {
 		panic(err)
 	}
