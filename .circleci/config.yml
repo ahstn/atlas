@@ -2,16 +2,16 @@ version: 2
 defaults: &defaults
   working_directory: /go/src/github.com/ahstn/atlas
   docker:
-    - image: circleci/golang:1.10.3
+    - image: ahstn/go-circleci:1.10.3
 
 jobs:
   build:
     <<: *defaults
     steps:
       - checkout
-      - run:
-          name: fetch vgo
-          command: go get -u golang.org/x/vgo
+      # - run:
+      #     name: fetch vgo
+      #     command: go get -u golang.org/x/vgo
       - run:
           name: build atlas
           command: vgo build cmd/atlas/atlas.go
