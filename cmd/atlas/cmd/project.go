@@ -43,10 +43,12 @@ func ProjectAction(c *cli.Context) error {
 		panic(err)
 	}
 
+	mvn := &builder.Maven{}
 	emoji.Printf(":file_folder:Operating in base directory [%v]\n", cfg.Root)
 	for _, app := range cfg.Services {
 		emoji.Printf("\n:wrench:Building: %v [%v]...\n", app.Name, app.Path)
-		createAndRunBuilder(app.Path, *app, c)
+		mvn.Dir = app.Path
+		createAndRunBuilder(app.Path, mvn, *app, c)
 
 		emoji.Printf("\n:wrench:Building Dockerfile: %v [%v]...\n", app.Name, app.Path)
 		if err != runDockerBuild(app.Path, *app) {
@@ -58,9 +60,7 @@ func ProjectAction(c *cli.Context) error {
 }
 
 // TODO: Handle Package Args
-func createAndRunBuilder(p string, app config.Service, c *cli.Context) {
-	mvn := builder.Maven{Dir: p}
-
+func createAndRunBuilder(p string, mvn builder.Builder, app config.Service, c *cli.Context) {
 	if app.HasTask("clean") {
 		mvn.Clean()
 	}
@@ -81,7 +81,7 @@ func createAndRunBuilder(p string, app config.Service, c *cli.Context) {
 	// In the event package pom lives in a seperate folder and needs to be ran
 	// after the build, handle as such.
 	if app.HasTask("package") && app.HasPackageSubDir() {
-		mvn = builder.Maven{Dir: p}
+		mvn = &builder.Maven{Dir: p}
 
 		mvn.Package()
 		if err := mvn.Run(c.Bool("verbose")); err != nil {

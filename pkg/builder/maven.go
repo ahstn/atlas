@@ -158,3 +158,7 @@ func printVerboseLog(scanner *bufio.Scanner) {
 		fmt.Printf("\n%s", scanner.Text())
 	}
 }
+
+func (m Maven) Args() string {
+	return m.cmd.Path
+}

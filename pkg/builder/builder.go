@@ -12,5 +12,8 @@ type Builder interface {
 	Clean()
 	Build()
 	Package()
-	Run() error
+	SkipTests()
+	Run(bool) error
+
+	Args() string
 }
