@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -118,7 +117,7 @@ func TestTryFindDockerfile(t *testing.T) {
 	}
 
 	s, err = TryFindDockerfile(".")
-	if err != errors.New(errDockerfile) {
+	if err.Error() != errDockerfile {
 		t.Fatal("Expected FindDockerfile to be unsuccessful. Got:", s)
 	}
 }
