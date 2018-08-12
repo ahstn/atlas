@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -32,21 +34,17 @@ var (
 
 func TestSuccessfulRead(t *testing.T) {
 	err := ioutil.WriteFile("./atlas.yaml", validYAML, 0644)
-	if err != nil {
-		_ = os.RemoveAll("./atlas.yaml")
-		t.Fatal("Can't create test yaml, skipping TestReadConfig", err)
-	}
+	defer os.RemoveAll("./atlas.yaml")
+	assert.Nil(t, err)
 
 	p, err := Read("./atlas.yaml")
 	if err != nil {
 		t.Fatal("Expected config read to be successful. Got:", err)
 	}
+
 	if p.Root != "/tmp" {
-		_ = os.RemoveAll("./atlas.yaml")
 		t.Fatal("Expected Project root to be '/tmp'. Got:", p.Root)
 	}
-
-	_ = os.RemoveAll("./atlas/.yaml")
 }
 
 func TestReadMissingFile(t *testing.T) {
@@ -58,32 +56,24 @@ func TestReadMissingFile(t *testing.T) {
 
 func TestReadInvalidFile(t *testing.T) {
 	err := ioutil.WriteFile("./invalid.yaml", invalidYAML, 0644)
-	if err != nil {
-		_ = os.RemoveAll("./invalid.yaml")
-		t.Fatal("Can't create test yaml, skipping TestReadInvalidFile", err)
-	}
+	defer os.RemoveAll("./invalid.yaml")
+	assert.Nil(t, err)
 
 	_, err = Read("./invalid.yaml")
 	if !strings.Contains(err.Error(), "cannot unmarshal") {
 		t.Fatal("Expected Read to return error (invalid file). Got:", err)
 	}
-
-	_ = os.RemoveAll("./invalid.yaml")
 }
 
 func TestReadInvalidRootField(t *testing.T) {
 	err := ioutil.WriteFile("./invalid-root.yaml", invalidRootYAML, 0644)
-	if err != nil {
-		_ = os.RemoveAll("./invalid-root.yaml")
-		t.Fatal("Can't create test yaml, skipping TestReadInvalidRootField", err)
-	}
+	assert.Nil(t, err)
+	defer os.RemoveAll("./invalid-root.yaml")
 
 	_, err = Read("./invalid-root.yaml")
 	if !strings.Contains(err.Error(), "ThisDirectoryShouldNotExist: no such file or directory") {
 		t.Fatal("Expected Read to return error (invalid root field). Got:", err)
 	}
-
-	_ = os.RemoveAll("./invalid-root.yaml")
 }
 
 func TestService_HasTask(t *testing.T) {
