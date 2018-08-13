@@ -9,11 +9,11 @@ package builder
 // The Run() func then executes the built exec.Cmd{}, tracking progress and
 //   reporting an error back.
 type Builder interface {
-	//command exec.Cmd
-	initialiseCommand()
-
 	Clean()
 	Build()
 	Package()
-	Run() error
+	SkipTests()
+	Run(bool) error
+
+	Args() string
 }

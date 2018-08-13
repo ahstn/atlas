@@ -3,6 +3,8 @@
 
 [![GoDoc](https://godoc.org/github.com/ahstn/atlas?status.svg)](https://godoc.org/github.com/ahstn/atlas)
 [![Go Report Card](https://goreportcard.com/badge/ahstn/atlas)](https://goreportcard.com/report/ahstn/atlas)
+[![CircleCI](https://circleci.com/gh/ahstn/atlas/tree/master.svg?style=shield)](https://circleci.com/gh/ahstn/atlas/tree/master)
+[![codecov](https://codecov.io/gh/ahstn/atlas/branch/master/graph/badge.svg)](https://codecov.io/gh/ahstn/atlas)
 
 **WORK IN PROGRESS. Only for dev and experimental use.**
 

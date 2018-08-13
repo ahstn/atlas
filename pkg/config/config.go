@@ -56,6 +56,7 @@ type Package struct {
 }
 
 // Read attempts to parse the config file located at the path passed in
+// TODO: Seperate this into two functions to make testing easier
 func Read(path string) (Project, error) {
 	var p Project
 	var err error

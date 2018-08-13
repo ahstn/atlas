@@ -1,12 +1,84 @@
 package config
 
 import (
+	"io/ioutil"
+	"os"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
+
+var (
+	validYAML = []byte(`---
+  root: /tmp
+  services:
+    -
+      docker:
+        dockerfile: ./Dockerfile
+        enabled: false
+      name: atlas
+      repo: https://github.com/ahstn/atlas.git
+      tasks:
+        - build
+  `)
+
+	invalidYAML = []byte(`
+  root- :tmp&
+  `)
+
+	invalidRootYAML = []byte(`---
+  root: /ThisDirectoryShouldNotExist
+  `)
+)
+
+func TestSuccessfulRead(t *testing.T) {
+	err := ioutil.WriteFile("./atlas.yaml", validYAML, 0644)
+	defer os.RemoveAll("./atlas.yaml")
+	assert.Nil(t, err)
+
+	p, err := Read("./atlas.yaml")
+	if err != nil {
+		t.Fatal("Expected config read to be successful. Got:", err)
+	}
+
+	if p.Root != "/tmp" {
+		t.Fatal("Expected Project root to be '/tmp'. Got:", p.Root)
+	}
+}
+
+func TestReadMissingFile(t *testing.T) {
+	_, err := Read("./missing.yaml")
+	if !strings.Contains(err.Error(), "missing.yaml: no such file or directory") {
+		t.Fatal("Expected Read to return error. Got:", err)
+	}
+}
+
+func TestReadInvalidFile(t *testing.T) {
+	err := ioutil.WriteFile("./invalid.yaml", invalidYAML, 0644)
+	defer os.RemoveAll("./invalid.yaml")
+	assert.Nil(t, err)
+
+	_, err = Read("./invalid.yaml")
+	if !strings.Contains(err.Error(), "cannot unmarshal") {
+		t.Fatal("Expected Read to return error (invalid file). Got:", err)
+	}
+}
+
+func TestReadInvalidRootField(t *testing.T) {
+	err := ioutil.WriteFile("./invalid-root.yaml", invalidRootYAML, 0644)
+	assert.Nil(t, err)
+	defer os.RemoveAll("./invalid-root.yaml")
+
+	_, err = Read("./invalid-root.yaml")
+	if !strings.Contains(err.Error(), "ThisDirectoryShouldNotExist: no such file or directory") {
+		t.Fatal("Expected Read to return error (invalid root field). Got:", err)
+	}
+}
 
 func TestService_HasTask(t *testing.T) {
 	type fields struct {
-		Docker  Docker
+		Docker  DockerArtifact
 		Package Package
 		Name    string
 		Repo    string
@@ -58,7 +130,7 @@ func TestService_HasTask(t *testing.T) {
 
 func TestService_HasPackageSubDir(t *testing.T) {
 	type fields struct {
-		Docker  Docker
+		Docker  DockerArtifact
 		Package Package
 		Name    string
 		Repo    string

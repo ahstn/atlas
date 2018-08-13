@@ -1,6 +1,8 @@
 package validator
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -52,7 +54,6 @@ func TestValidateBuildArgs(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []string
 		wantErr bool
 	}{
 		{
@@ -84,5 +85,39 @@ func TestValidateBuildArgs(t *testing.T) {
 				return
 			}
 		})
+	}
+}
+
+func TestTryFindDockerfile(t *testing.T) {
+	err := os.Mkdir("./testdir", 0777)
+	if err != nil {
+		t.Fatal("Can't create test dir, skipping TestTryFindDockerfile", err)
+	}
+
+	dockerfile := []byte("FROM golang\nRUN echo 'hello'\n")
+	err = ioutil.WriteFile("./testdir/Dockerfile", dockerfile, 0644)
+	if err != nil {
+		_ = os.RemoveAll("./testdir")
+		t.Fatal("Can't create Dockerfile, skipping TestTryFindDockerfile", err)
+	}
+
+	s, err := TryFindDockerfile(".")
+	if s != "testdir/Dockerfile" {
+		_ = os.RemoveAll("./testdir")
+		t.Fatal("Expected FindDockerfile to return 'testdir/Dockerfile'. Got:", s)
+	}
+	if err != nil {
+		_ = os.RemoveAll("./testdir")
+		t.Fatal("Expected FindDockerfile to be successful. Got:", err)
+	}
+
+	err = os.RemoveAll("./testdir")
+	if err != nil {
+		t.Skip("Can't Remove Dockerfile, skpping TestTryFindDockerfile")
+	}
+
+	s, err = TryFindDockerfile(".")
+	if err.Error() != errDockerfile {
+		t.Fatal("Expected FindDockerfile to be unsuccessful. Got:", s)
 	}
 }
