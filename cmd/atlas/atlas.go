@@ -17,9 +17,10 @@ func main() {
 		HelpName: "atlas",
 		Commands: []cli.Command{
 			cmd.Build,
+			cmd.Docker,
+			cmd.Git,
 			cmd.Project,
 			cmd.Repo,
-			cmd.Docker,
 		},
 		Flags: []cli.Flag{
 			flag.SkipTests,

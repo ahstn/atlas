@@ -30,7 +30,7 @@ func ValidateExists(s string) (string, error) {
 }
 
 // ValidateConfig verifies that the filetype and contents are valid
-// param: s should be the full fil path
+// param: s should be the full file path
 func ValidateConfig(s string) error {
 	if !strings.Contains(s, ".yaml") {
 		return errors.New(errCfgFormat)
