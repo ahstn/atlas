@@ -1,8 +1,7 @@
-package io.ahstn.DockerSpringVue.repositories;
+package io.ahstn.usersapi.repositories;
 
 import io.ahstn.usersapi.UsersApiApplication;
 import io.ahstn.usersapi.models.User;
-import io.ahstn.usersapi.repositories.UserRepository;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.Before;
@@ -12,7 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = UsersApiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -26,13 +26,13 @@ public class UserRepositoryTest {
     public void setUp() {
         if (userRepo.findByEmail("adam@ahstn.io").isEmpty()) {
             User user = new User("Adam", "Houston", "adam@ahstn.io");
-            user = userRepo.save(user);
+            userRepo.save(user);
         }
     }
 
     @Test
     public void TestGetUserStatusOkay() {
-        final Response res = RestAssured.get(USER_ENDPOINT + "/1");
+        final Response res = RestAssured.get(USER_ENDPOINT + "/2");
 
         assertEquals(200, res.getStatusCode());
         assertTrue(res.asString().contains("email"));
