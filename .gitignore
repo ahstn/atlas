@@ -1,5 +1,8 @@
 atlas.yaml
+!examples/**/atlas.yaml
+
 dist/
 go.sum
 coverage.txt
 testdir/
+
