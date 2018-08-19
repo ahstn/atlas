@@ -2,13 +2,14 @@ package pb
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	spinner "github.com/briandowns/spinner"
 )
 
-// CreateAndStartBuildSpinner displays and returns a new spinner
-func CreateAndStartBuildSpinner(title string) *spinner.Spinner {
+// Print displays and returns a new spinner
+func Print(title string) *spinner.Spinner {
 	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	_ = s.Color("fgHiCyan")
 	s.Prefix = " "
@@ -18,14 +19,14 @@ func CreateAndStartBuildSpinner(title string) *spinner.Spinner {
 	return s
 }
 
-// RunSpinner displays a new spinner for a set amount of time
-func RunSpinner(title string) {
-	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond) // Build our new spinner
-	s.Start()                                                    // Start the spinner
+// Fprint displays to the passed io.Writer and returns a new spinner
+func Fprint(out io.Writer, title string) *spinner.Spinner {
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	_ = s.Color("fgHiCyan")
+	s.Writer = out
 	s.Prefix = " "
-	s.Suffix = fmt.Sprintf(" %s...", title)
-	s.FinalMSG = " ✔ Complete\n"
-	time.Sleep(4 * time.Second) // Run for some time to simulate work
-	s.Stop()
+	s.Suffix = fmt.Sprintf("  %s Building ...", title)
+	s.FinalMSG = fmt.Sprintf("  ✔ %s Complete\n", title)
+	s.Start()
+	return s
 }

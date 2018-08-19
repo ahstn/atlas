@@ -70,7 +70,7 @@ func PrintStream(r io.Reader) error {
 				queue = queue[1:]
 			}
 
-			spinner := pb.CreateAndStartBuildSpinner(formatted)
+			spinner := pb.Print(formatted)
 			queue = append(queue, spinner)
 		}
 
