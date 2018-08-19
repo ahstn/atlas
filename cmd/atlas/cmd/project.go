@@ -50,7 +50,7 @@ func ProjectAction(c *cli.Context) error {
 		mvn.Dir = app.Path
 		createAndRunBuilder(app.Path, mvn, *app, c)
 
-		emoji.Printf("\n:wrench:Building Dockerfile: %v [%v]...\n", app.Name, app.Path)
+		emoji.Printf(":whale:Building Dockerfile: %v [%v]...\n", app.Name, app.Path)
 		if err != runDockerBuild(app.Path, *app) {
 			panic(err)
 		}
@@ -92,6 +92,7 @@ func createAndRunBuilder(p string, mvn builder.Builder, app config.Service, c *c
 
 func runDockerBuild(p string, app config.Service) error {
 	if !app.Docker.Enabled {
+		emoji.Print("  :zzz: Docker build disabled. Skipping...\n")
 		return nil
 	}
 

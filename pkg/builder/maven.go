@@ -66,7 +66,7 @@ func (m *Maven) SetDir(d string) {
 }
 
 // Run executes the built command
-func (m *Maven) Run(v bool) error {
+func (m Maven) Run(v bool) error {
 	stdoutPipe, err := m.cmd.StdoutPipe()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
