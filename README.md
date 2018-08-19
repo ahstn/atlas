@@ -18,6 +18,7 @@
   * [`atlas project`](#atlas-project)
   * [`atlas repo`](#atlas-repo)
   * [`atlas docker`](#atlas-docker)
+  * [`atlas git`](#atlas-git)
 * [Config](#config)
 
 ## Introduction
@@ -56,8 +57,8 @@ Feature requests in the form of GitHub issues and comments on current issues are
 welcomed and encourged to help shape `atlas`.
 
 ## Preview
-Simple example using a config file with two projects from [eugenp/tutorials]:
-[![asciicast](https://asciinema.org/a/vcZS0r2z15HXiusFTBHGPQtSQ.png)](https://asciinema.org/a/vcZS0r2z15HXiusFTBHGPQtSQ)
+Maven and Docker build example using the config file in `exmaples/java/`:
+[![asciicast](https://asciinema.org/a/197066.png)](https://asciinema.org/a/197066)
 
 
 ## Features
@@ -66,6 +67,7 @@ Documentation to be completed, and features are in progress but for now:
 * Config files intended for automonous building of multi-repos.
   * Including application builder (mvn, npm, etc), Docker builds and Docker runs.
 * Opening Git repository in browser from the terminal.
+* Allowing users to execute Git commands against multiple repos at once (clone, checkout, update).
 * Opening GitHub/JIRA issue in browser from the terminal.
 * .gitignore generator with language detection.
 * Dockerfile generator with language detection.
@@ -130,6 +132,36 @@ OPTIONS:
    --arg arg=value, -a arg=value  build arguments in the arg=value format (space seperated)
    --config value, -c value       name of config file in ~/.config/atlas (default: "atlas.yaml")
    --verbose, -V                  verbose logging rather than progress bars
+```
+
+## `atlas git`
+Wrapper around Git that allows the user to execute commands against many repos at once.
+Instead of having to jump into multiple directories, then `git pull` or `git checkout -b new-feature`,
+`atlas` can handle this in one command.
+
+From the usage below you can see the available commands.
+One example to run would be `atlas git clone -c atlas.yaml -e auth`.
+Which will clone all the applications specified in your config into the `config root dir`, excluding the `auth` service.
+```
+➜ atlas help git
+NAME:
+   atlas git - preform Git actions against service(s)
+
+USAGE:
+   atlas git [global options] command [command options] [arguments...]
+
+COMMANDS:
+     branch      create a branch in the services' repo(s) defined in config
+     clone       clone the services' repo(s) defined in config
+     checkout    checkout a branch in services' repo(s) defined in config
+     update, up  pull updates from remote, but keep local changes
+
+GLOBAL OPTIONS:
+   --help, -h  show help
+
+SUBCOMMAND OPTIONS:
+   --config value, -c value   name of config file in ~/.config/atlas (default: "atlas.yaml")
+   --exclude value, -e value  exclude certain services defined in config from the command
 ```
 
 # Config
