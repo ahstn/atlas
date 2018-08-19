@@ -3,6 +3,7 @@ package builder
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -18,6 +19,7 @@ import (
 type Maven struct {
 	Dir string
 	cmd exec.Cmd
+	out io.Writer
 }
 
 func (m *Maven) initialiseCommand() {
@@ -32,6 +34,7 @@ func (m *Maven) initialiseCommand() {
 			Env:  nil, // allow user to set custom environment variables
 			Dir:  m.Dir,
 		}
+		m.out = os.Stdout
 	}
 }
 
@@ -83,7 +86,7 @@ func (m Maven) Run(v bool) error {
 		go printVerboseLog(scanner)
 	} else {
 		wg.Add(1)
-		go printLog(scanner, &wg)
+		go printLog(scanner, m.out, &wg)
 	}
 
 	errScanner := bufio.NewScanner(stderrPipe)
@@ -107,7 +110,7 @@ func (m Maven) Run(v bool) error {
 	return nil
 }
 
-func printLog(s *bufio.Scanner, wg *sync.WaitGroup) {
+func printLog(s *bufio.Scanner, out io.Writer, wg *sync.WaitGroup) {
 	failedTests := false
 	queue := make([]*spinner.Spinner, 0)
 	//TODO: Handle Packaging output
@@ -140,7 +143,7 @@ func printLog(s *bufio.Scanner, wg *sync.WaitGroup) {
 			}
 
 			// Create spinner and add it to the queue of pending builds
-			spinner := pb.CreateAndStartBuildSpinner(module)
+			spinner := pb.Fprint(out, module)
 			queue = append(queue, spinner)
 		}
 	}
