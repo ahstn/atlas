@@ -102,3 +102,31 @@ func AbsToRelPath(p string) (string, error) {
 
 	return filepath.Rel(wd, p)
 }
+
+func imagePull(c context.Context, cli *client.Client, img string) error {
+	opts := types.ImagePullOptions{}
+	reader, err := cli.ImagePull(c, img, opts)
+	if err != nil {
+		return err
+	}
+
+	io.Copy(os.Stdout, reader)
+	return nil
+}
+
+func imageExists(c context.Context, cli *client.Client, img string) {
+	images, err := cli.ImageList(context.Background(), types.ImageListOptions{})
+	if err != nil {
+		return false
+	}
+
+	for _, image := range images {
+		for _, tag := range image.RepoTags {
+			if tag == img {
+				return true
+			}
+		}
+	}
+
+	return false
+}

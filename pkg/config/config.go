@@ -47,6 +47,7 @@ type DockerArtifact struct {
 	Path       string   `yaml:"path"`
 	Enabled    bool     `yaml:"enabled"`
 	Tag        string   `yaml:"tag"`
+	Cmd        string   `yaml:"cmd"`
 }
 
 // Package stores packaging information relating to the build

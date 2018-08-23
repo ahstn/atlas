@@ -42,8 +42,12 @@ var Docker = cli.Command{
 }
 
 func runAction(c *cli.Context) error {
+	artifact := config.DockerArtifact{
+		Tag: "alpine",
+		Cmd: "echo hello world",
+	}
 	ctx := context.Background()
-	return docker.RunContainer(ctx)
+	return docker.RunContainer(ctx, artifact)
 }
 
 // DockerAction handles building a container
