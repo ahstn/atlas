@@ -39,18 +39,3 @@ func ProcessRepoURL(r string) (string, error) {
 
 	return "", errors.New("could not process Git repo url")
 }
-
-//TODO: Abstract logic from ProcessRepoURL + ProcessIssuesURL
-// ProcessIssuesURL sanitizes URL
-// func ProcessIssuesURL(r string) (string, error) {
-// 	if strings.Contains(r, "git@") {
-// 		r = strings.Replace(r, "git@", "https://", 1)
-// 		r = strings.Replace(r, ".com:", ".com/", 1)
-
-// 		return r, nil
-// 	} else if strings.Contains(r, "https://") {
-// 		return r, nil
-// 	}
-
-// 	return "", errors.New("could not process Git repo url")
-// }

@@ -1,0 +1,21 @@
+---
+root: ~/go/src/github.com/ahstn/atlas/examples/java
+services:
+  -
+    docker:
+      dockerfile: ./Dockerfile
+      enabled: true
+    name: product-api
+    repo: https://github.com/ahstn/atlas.git
+    tasks:
+      - clean
+      - build
+  -
+    docker:
+      dockerfile: ./Dockerfile
+      enabled: true
+    name: users-api
+    repo: https://github.com/ahstn/atlas.git
+    tasks:
+      - clean
+      - build

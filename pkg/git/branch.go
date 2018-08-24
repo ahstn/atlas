@@ -1,7 +1,6 @@
 package git
 
 import (
-	"os/exec"
 	"strings"
 
 	emoji "gopkg.in/kyokomi/emoji.v1"
@@ -15,14 +14,19 @@ func BranchLogMessage(branch, url string) string {
 	return emoji.Sprintf(":globe_with_meridians:Opening Feature Issue URL: %v", url)
 }
 
-// Branch getter function for git branch
-func Branch() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", err
+// IsShortLivedBranch is syntax sugar for determining branch type (Git Flow)
+func IsShortLivedBranch(b string) bool {
+	return !strings.Contains(b, "develop") && !strings.Contains(b, "master")
+}
+
+// TrimBranchContext removes any extra context/info from the branch data
+// Example: feature/TEAM-123-implement-feature -> feature/TEAM-123
+func TrimBranchContext(b string) string {
+	if strings.Count(b, "-") > 1 {
+		s := strings.SplitAfter(b, "-")[:2]
+		b = strings.Join(s, "")
+		b = strings.TrimSuffix(b, "-")
 	}
-	branch := string(out)
-	//TODO remove the ToLower here, it would cause issues if issue name was CAPS e.g. DEV-118
-	return strings.TrimSpace(strings.ToLower(branch)), nil
+
+	return b
 }

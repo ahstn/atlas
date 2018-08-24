@@ -1,0 +1,20 @@
+version: 2
+defaults: &defaults
+  working_directory: /go/src/github.com/ahstn/atlas
+  docker:
+    - image: ahstn/go-circleci:1.10.3
+
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: build atlas
+          command: vgo build cmd/atlas/atlas.go
+      - run:
+          name: test atlas
+          command: |
+            vgo test -coverprofile=coverage.txt -covermode=atomic ./...
+            bash <(curl -s https://codecov.io/bash)
+
