@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ahstn/atlas/pkg/git"
@@ -19,27 +20,24 @@ var Issues = cli.Command{
 
 // IssuesAction executes logic to determine URL for 'Issues' page
 func IssuesAction(c *cli.Context) error {
-	url, err := git.URL()
-
-	url, err = util.ProcessRepoURL(string(url))
+	out, err := git.URL(os.Getenv("PWD"))
+	url, err := util.ProcessRepoURL(string(out))
 	if err != nil {
 		panic(err)
 	}
 
-	branch, err := git.Branch()
+	out, err = git.Branch(os.Getenv("PWD"))
 	if err != nil {
 		panic(err)
 	}
+	branch := strings.TrimSpace(strings.ToLower(string(out)))
 
-	url = strings.Replace(url, ".git", "/issues/", 1)
-	if !strings.Contains(branch, "develop") && !strings.Contains(branch, "master") {
-		if strings.Count(branch, "-") > 1 {
-			s := strings.SplitAfter(branch, "-")[:2]
-			branch = strings.Join(s, "")
-			branch = strings.TrimSuffix(branch, "-")
-		}
+	url = fmt.Sprintf("%s/issues", url)
+	if git.IsShortLivedBranch(branch) {
+		branch = git.TrimBranchContext(branch)
+
 		branch = strings.SplitAfter(branch, "/")[1]
-		url = url + branch
+		url = fmt.Sprintf("%s/%s", url, branch)
 	}
 
 	fmt.Println(git.BranchLogMessage(branch, url))
