@@ -14,13 +14,13 @@ import (
 // Issues defines the command for the cli to open browser at Issues URL
 var Issues = cli.Command{
 	Name:    "issues",
-	Aliases: []string{"i", "issues"},
-	Usage:   "open JIRA/Github issue page for current Git project",
+	Aliases: []string{"i"},
+	Usage:   "open JIRA/Github issue tracker for current Git project",
 	Action:  IssuesAction,
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "url, u",
-			Usage: "private JIRA base `URL`(without '/issues' or '<team>')",
+			Usage: "private JIRA base `URL` (without '/issues' or '<team>')",
 		},
 	},
 }
