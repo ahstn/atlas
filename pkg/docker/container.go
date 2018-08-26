@@ -1,8 +1,6 @@
 package docker
 
 import (
-	"io"
-	"os"
 	"strings"
 
 	"github.com/ahstn/atlas/pkg/config"
@@ -32,6 +30,13 @@ func RunContainer(c context.Context, d config.DockerArtifact) error {
 		return err
 	}
 
+	out, err := cli.ContainerLogs(c, resp.ID, types.ContainerLogsOptions{ShowStdout: true, Follow: true})
+	if err != nil {
+		return err
+	}
+
+	PrintRun(out, strings.Split(d.Tag, ":")[0])
+
 	statusCh, errCh := cli.ContainerWait(c, resp.ID, container.WaitConditionNotRunning)
 	select {
 	case err := <-errCh:
@@ -41,11 +46,5 @@ func RunContainer(c context.Context, d config.DockerArtifact) error {
 	case <-statusCh:
 	}
 
-	out, err := cli.ContainerLogs(c, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
-	if err != nil {
-		return err
-	}
-
-	io.Copy(os.Stdout, out)
 	return nil
 }

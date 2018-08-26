@@ -114,7 +114,7 @@ func imagePull(c context.Context, cli *client.Client, img string) error {
 	return nil
 }
 
-func imageExists(c context.Context, cli *client.Client, img string) {
+func imageExists(c context.Context, cli *client.Client, img string) bool {
 	images, err := cli.ImageList(context.Background(), types.ImageListOptions{})
 	if err != nil {
 		return false

@@ -41,6 +41,21 @@ func (s Stream) Print() error {
 	return nil
 }
 
+// PrintRun tails the logs from a running docker container with the app name
+// prefixed to each line
+func PrintRun(r io.Reader, app string) error {
+	buf := make([]byte, 256)
+	for {
+		n, err := r.Read(buf)
+		if err == io.EOF {
+			break
+		}
+		fmt.Printf(" %s | %s\n", app, strings.TrimSpace(string(buf[:n])))
+	}
+
+	return nil
+}
+
 // PrintStream decodes the Docker output from io.Reader and outputs it to
 // the io.Writer
 func PrintStream(r io.Reader) error {
