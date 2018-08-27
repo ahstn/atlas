@@ -1,0 +1,1 @@
+[AHSTN] ${Ansi.RED} atlas example [product-api] using Spring Boot ${Ansi.DEFAULT}
