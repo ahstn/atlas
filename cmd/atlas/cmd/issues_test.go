@@ -14,8 +14,11 @@ const (
 
 func TestDetermineURLUsingFlag(t *testing.T) {
 	set := flag.NewFlagSet("test", 0)
-	set.String("url", testRepo, "usage")
+	set.String("url", "", "usage")
 	c := cli.NewContext(nil, set, nil)
+
+	// Emulate CLI command
+	c.Set("url", testRepo)
 
 	url, err := determineURL(c)
 	if err != nil {

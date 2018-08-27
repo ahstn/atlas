@@ -11,7 +11,7 @@ jobs:
       - checkout
       - run:
           name: build atlas
-          command: vgo build cmd/atlas/atlas.go
+          command: vgo build ./cmd/atlas/
       - run:
           name: test atlas
           command: |
