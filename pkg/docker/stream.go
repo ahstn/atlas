@@ -63,7 +63,6 @@ func PrintRun(r io.Reader, app string) error {
 // RandomOutputColor uses fatih/color to return a function that will be used
 // to output a string that is bold and colored
 func RandomOutputColor() func(...interface{}) string {
-	rand.Intn(6)
 	switch rand.Intn(6) {
 	case 1:
 		return color.New(color.FgGreen, color.Bold).SprintFunc()
