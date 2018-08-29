@@ -29,6 +29,7 @@ var Project = cli.Command{
 // ProjectAction executes the logic to read a project file and build it's apps
 // TODO: Proper logging and error handling
 func ProjectAction(c *cli.Context) error {
+	ctx := context.Background()
 	f, err := validator.ValidateExists(c.String("config"))
 	if err != nil {
 		panic(err)
@@ -53,6 +54,28 @@ func ProjectAction(c *cli.Context) error {
 		emoji.Printf(":whale:Building Dockerfile: %v [%v]...\n", app.Name, app.Path)
 		if err != runDockerBuild(app.Path, *app) {
 			panic(err)
+		}
+	}
+
+	quit := make(chan bool)
+	done := make(chan error)
+	for _, app := range cfg.Services {
+		go func(d config.DockerArtifact) {
+			var err error
+			err = docker.RunContainer(ctx, d)
+
+			select {
+			case done <- err:
+			case <-quit:
+			}
+		}(app.Docker)
+	}
+
+	for range cfg.Services {
+		err := <-done
+		if err != nil {
+			close(quit)
+			return err
 		}
 	}
 

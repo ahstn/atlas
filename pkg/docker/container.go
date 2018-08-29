@@ -48,3 +48,7 @@ func RunContainer(c context.Context, d config.DockerArtifact) error {
 
 	return nil
 }
+
+func NewClient() (*client.Client, error) {
+	return client.NewEnvClient()
+}
