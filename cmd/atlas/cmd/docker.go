@@ -19,14 +19,6 @@ var Docker = cli.Command{
 	Usage:     "build an application's Dockerfile",
 	ArgsUsage: "[directory containing Dockerfile]",
 	Action:    DockerAction,
-	Subcommands: []cli.Command{
-		{
-			Name:      "run",
-			Usage:     "run an application's Docker image",
-			ArgsUsage: "[app name]",
-			Action:    runAction,
-		},
-	},
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "tag, t",

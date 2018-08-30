@@ -43,6 +43,8 @@ func (s Service) HasPackageSubDir() bool {
 // DockerArtifact stores container information relating to the build
 type DockerArtifact struct {
 	Args       []string `yaml:"args"`
+	Env        []string `yaml:"env"`
+	Ports      []string `yaml:"port"`
 	Dockerfile string   `yaml:"dockerfile"`
 	Path       string   `yaml:"path"`
 	Enabled    bool     `yaml:"enabled"`

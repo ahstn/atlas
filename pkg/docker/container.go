@@ -7,6 +7,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"golang.org/x/net/context"
 )
 
@@ -17,10 +18,17 @@ func RunContainer(c context.Context, d config.DockerArtifact) error {
 		return err
 	}
 
+	ports, _, err := nat.ParsePortSpecs(d.Ports)
+	if err != nil {
+		return err
+	}
+
 	resp, err := cli.ContainerCreate(c, &container.Config{
-		Image: d.Tag,
-		Cmd:   strings.Split(d.Cmd, " "),
-		Tty:   true,
+		Image:        d.Tag,
+		Cmd:          strings.Split(d.Cmd, " "),
+		Env:          d.Env,
+		ExposedPorts: ports,
+		Tty:          true,
 	}, nil, nil, "")
 	if err != nil {
 		return err
