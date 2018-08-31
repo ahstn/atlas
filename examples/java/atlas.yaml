@@ -4,7 +4,8 @@ services:
   -
     docker:
       dockerfile: ./Dockerfile
-      enabled: true
+      enabled: false
+      tag: product-api:test
     name: product-api
     repo: https://github.com/ahstn/atlas.git
     tasks:
@@ -13,7 +14,8 @@ services:
   -
     docker:
       dockerfile: ./Dockerfile
-      enabled: true
+      enabled: false
+      tag: users-api:test
     name: users-api
     repo: https://github.com/ahstn/atlas.git
     tasks:

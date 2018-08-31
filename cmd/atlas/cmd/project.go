@@ -29,6 +29,7 @@ var Project = cli.Command{
 // ProjectAction executes the logic to read a project file and build it's apps
 // TODO: Proper logging and error handling
 func ProjectAction(c *cli.Context) error {
+	ctx := context.Background()
 	f, err := validator.ValidateExists(c.String("config"))
 	if err != nil {
 		panic(err)
@@ -56,7 +57,7 @@ func ProjectAction(c *cli.Context) error {
 		}
 	}
 
-	return nil
+	return runDockerLogs(ctx, cfg.Services)
 }
 
 // TODO: Handle Package Args
@@ -98,4 +99,30 @@ func runDockerBuild(p string, app config.Service) error {
 
 	ctx := context.Background()
 	return docker.ImageBuild(ctx, app.Docker)
+}
+
+func runDockerLogs(ctx context.Context, svcs []*config.Service) error {
+	quit := make(chan bool)
+	done := make(chan error)
+	for _, app := range svcs {
+		go func(d config.DockerArtifact) {
+			var err error
+			err = docker.RunContainer(ctx, d)
+
+			select {
+			case done <- err:
+			case <-quit:
+			}
+		}(app.Docker)
+	}
+
+	for range svcs {
+		err := <-done
+		if err != nil {
+			close(quit)
+			return err
+		}
+	}
+
+	return nil
 }

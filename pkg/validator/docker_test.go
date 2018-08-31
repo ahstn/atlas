@@ -3,6 +3,7 @@ package validator
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 )
 
@@ -32,7 +33,7 @@ func TestValidateTag(t *testing.T) {
 		},
 		{
 			name:    "Incorrectly Ends with '/'",
-			args:    args{s: "ahstn/"},
+			args:    args{s: "ahstn:test/"},
 			wantErr: true,
 		},
 	}
@@ -119,5 +120,50 @@ func TestTryFindDockerfile(t *testing.T) {
 	s, err = TryFindDockerfile(".")
 	if err.Error() != errDockerfile {
 		t.Fatal("Expected FindDockerfile to be unsuccessful. Got:", s)
+	}
+}
+
+func TestValidateArguments(t *testing.T) {
+	tmp, err := ioutil.TempDir("", "TestValidateArguments")
+	if err != nil {
+		t.Fatal("TempDir failed: ", err)
+	}
+
+	path, err := ValidateArguments(tmp)
+	if path != tmp {
+		t.Fatal("Expected return to be dir. Got", path, err)
+	}
+}
+
+func TestValidateArgumentsReturnsBaseDir(t *testing.T) {
+	const testFile = "test_file"
+	tmp, err := ioutil.TempDir("", "TestValidateArguments")
+	if err != nil {
+		t.Fatal("TempDir failed: ", err)
+	}
+	err = os.Chdir(tmp)
+	if err != nil {
+		t.Fatal("Chdir failed: ", err)
+	}
+
+	f, err := os.OpenFile(testFile, os.O_CREATE, 0777)
+	if err != nil {
+		t.Fatal("OpenFile failed: ", err)
+	}
+	err = f.Close()
+	if err != nil {
+		t.Fatal("Close failed: ", err)
+	}
+
+	path, err := ValidateArguments(path.Join(tmp, testFile))
+	if path != tmp {
+		t.Fatal("Expected return to be dir. Got", path, err)
+	}
+}
+
+func TestValidateArgumentsReturnsErr(t *testing.T) {
+	_, err := ValidateArguments("")
+	if err.Error() != errPath {
+		t.Fatal("Expected return to be err. Got", err)
 	}
 }
