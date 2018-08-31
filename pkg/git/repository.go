@@ -33,3 +33,13 @@ func CheckoutBranch(dir, branch string) ([]byte, error) {
 func Update(dir string) ([]byte, error) {
 	return gitCmdInDir(dir, "pull", "--rebase", "--prune")
 }
+
+// URL returns the remote repository URL
+func URL(dir string) ([]byte, error) {
+	return gitCmdInDir(dir, "ls-remote", "--get-url")
+}
+
+// Branch returns branch name the local repository is tracking to
+func Branch(dir string) ([]byte, error) {
+	return gitCmdInDir(dir, "rev-parse", "--abbrev-ref", "HEAD")
+}

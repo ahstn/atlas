@@ -11,7 +11,7 @@ func TestFprint(t *testing.T) {
 	var buf bytes.Buffer
 
 	spinner := Fprint(&buf, "spinner test")
-	time.Sleep(time.Millisecond * 4)
+	time.Sleep(time.Millisecond * 10)
 	spinner.Stop()
 
 	// t.Fatal(buf.String())

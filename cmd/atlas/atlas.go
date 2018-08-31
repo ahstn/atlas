@@ -16,12 +16,13 @@ func main() {
 	app := &cli.App{
 		Name:     "atlas",
 		Usage:    "Make Development Great Again",
-		Version:  "0.1.0-beta-3",
+		Version:  "0.1.0",
 		HelpName: "atlas",
 		Commands: []cli.Command{
 			cmd.Build,
 			cmd.Docker,
 			cmd.Git,
+			cmd.Issues,
 			cmd.Project,
 			cmd.Repo,
 		},

@@ -16,15 +16,15 @@
 * [Features](#features)
 * [Commands](#commands)
   * [`atlas project`](#atlas-project)
-  * [`atlas repo`](#atlas-repo)
   * [`atlas docker`](#atlas-docker)
+  * [`atlas repo`](#atlas-repo)
   * [`atlas git`](#atlas-git)
+  * [`atlas issues`](#atlas-issues)
 * [Config](#config)
 
 ## Introduction
 `atlas` is a CLI tool that leverages development applications to make common tasks more efficient.
 One of the main purposes is to make builds simpler across multiple repos while providing an aesthetic user interface.
-
 ```
 ➜ atlas help
 NAME:
@@ -35,9 +35,10 @@ USAGE:
 
 COMMANDS:
      build, b    execute the application build process
+     docker, d   build an application's Dockerfile
+     issues, i   open JIRA/Github issue page for current Git project
      project, p  build project (collection of services)
      repo, r     open Git repo in browser
-     docker, d   build an application's Dockerfile
      help, h     Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
@@ -86,7 +87,6 @@ builds to run, what arguments should be passed when running the application and
 much more!
 
 You can read more about the configuration file and usage in the [config section](#config).
-
 ```
 ➜ atlas help project
 NAME:
@@ -101,24 +101,9 @@ OPTIONS:
    --verbose, -V             verbose logging rather than progress bars
 ```
 
-## `atlas repo`
-Ever wished you could just run a command that would open your Git repo in the
-browser, instead of manually switching to Chrome and navigating GitHub? Well
-now you can! :grin:
-
-```
-➜ atlas help repo
-NAME:
-   atlas repo - open Git repo in browser
-
-USAGE:
-   atlas repo
-```
-
 ## `atlas docker`
 Essentially the same basic funationality as `docker build` with the regular
 stdout replaced in favour of a more elegant output.
-
 ```
 ➜ atlas help docker
 NAME:
@@ -162,6 +147,35 @@ GLOBAL OPTIONS:
 SUBCOMMAND OPTIONS:
    --config value, -c value   name of config file in ~/.config/atlas (default: "atlas.yaml")
    --exclude value, -e value  exclude certain services defined in config from the command
+```
+
+## `atlas repo`
+Ever wished you could just run a command that would open your Git repo in the
+browser, instead of manually switching to Chrome and navigating GitHub? Well
+now you can! :grin:
+```
+➜ atlas help repo
+NAME:
+   atlas repo - open Git repo in browser
+
+USAGE:
+   atlas repo
+```
+
+## `atlas issues`
+The same concept as `atlas repo` only for issue trackers! When ran from a repo,
+the issue tracker will be opened in your browser. The only downside is that
+private issue trackers must be supplied using the `--url` flag.
+```
+➜ atlas help issues
+NAME:
+   atlas issues - open JIRA/Github issue page for current Git project
+
+USAGE:
+   atlas issues [command options] [arguments...]
+
+OPTIONS:
+   --url URL, -u URL  private JIRA base URL (without '/issues' or '<team>')
 ```
 
 # Config
