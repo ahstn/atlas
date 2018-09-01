@@ -9,6 +9,8 @@ import (
 	"path"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var fakeOutput = `[INFO]
@@ -26,42 +28,21 @@ var fakeOutput = `[INFO]
 [INFO] ------------------------------------------------------------------------
 `
 
-func TestInitaliseCommand(t *testing.T) {
+func TestNewClient(t *testing.T) {
+	mvn := NewClient("./", nil, []string{"install"}, []string{"-DskipTests"})
+
+	assert.Equal(t, []string{"install", "-DskipTests"}, mvn.cmd.Args)
+}
+
+func TestNewCustomClient(t *testing.T) {
 	pathenv := os.Getenv("PATH")
 	defer os.Setenv("PATH", pathenv)
 
 	path := SetupMvnInPath(t)
 
-	var mvn Maven
-	mvn.initialiseCommand()
-	if mvn.cmd.Path != path {
-		t.Fatal("Expected cmd path to be mvn. Got:", mvn.cmd.Path)
-	}
-}
-
-func TestShorthandTasks(t *testing.T) {
-	pathenv := os.Getenv("PATH")
-	defer os.Setenv("PATH", pathenv)
-
-	SetupMvnInPath(t)
-
-	var mvn Maven
-	mvn.initialiseCommand()
-	mvn.Clean()
-	mvn.Build()
-	mvn.Package()
-	mvn.SkipTests()
-
-	cmd := strings.Join(mvn.cmd.Args, " ")
-	if !strings.Contains(cmd, "clean") {
-		t.Fatal("Expected cmd to contain arg 'clean'. Got:", cmd)
-	} else if !strings.Contains(cmd, "install") {
-		t.Fatal("Expected cmd to contain arg 'install'. Got:", cmd)
-	} else if !strings.Contains(cmd, "package") {
-		t.Fatal("Expected cmd to contain arg 'package'. Got:", cmd)
-	} else if !strings.Contains(cmd, "-DskipTests") {
-		t.Fatal("Expected cmd to contain arg '-DskipTests'. Got:", cmd)
-	}
+	mvn := NewCustomClient(path, "./", nil, []string{"install"}, []string{"-DskipTests"})
+	assert.Equal(t, []string{"install", "-DskipTests"}, mvn.cmd.Args)
+	assert.Equal(t, path, mvn.cmd.Path)
 }
 
 func TestRun(t *testing.T) {

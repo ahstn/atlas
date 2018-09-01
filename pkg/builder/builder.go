@@ -3,17 +3,14 @@ package builder
 // Builder defines the actions that an app packager typically preforms.
 // i.e "mvn clean install", "go install"
 //
-// Intended to be used as a builder pattern: Builder struct holds a exec.Cmd{}
-//   initialiseCommand() will create the exec.Cmd if nil.
-// Then functions like Clean() and Build() can be chained on the implmentation.
-// The Run() func then executes the built exec.Cmd{}, tracking progress and
-//   reporting an error back.
+// Each builder should have an external "NewClient()" method that allows users
+// to initialise a Builder easily with sensible defaults.
 type Builder interface {
-	Clean()
-	Build()
-	Package()
-	SkipTests()
+	// Run is the method that executes the builder, assuming it has been
+	// initialised correctly
 	Run(bool) error
 
+	// Args is a method that allows users to quickly have access to the arguments
+	// the builder is planning to execute
 	Args() string
 }

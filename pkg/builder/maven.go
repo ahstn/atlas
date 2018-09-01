@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/ahstn/atlas/pkg/pb"
-	"github.com/apex/log"
 	"github.com/briandowns/spinner"
 )
 
@@ -22,50 +21,36 @@ type Maven struct {
 	out io.Writer
 }
 
-func (m *Maven) initialiseCommand() {
-	if m.cmd.Path == "" {
-		path, err := exec.LookPath("mvn")
-		if err != nil {
-			log.Info("unable to find path (mvn)")
-		}
-		m.cmd = exec.Cmd{
-			Path: path, // allow user to set custom exec path
-			Args: []string{""},
-			Env:  nil, // allow user to set custom environment variables
-			Dir:  m.Dir,
-		}
-		m.out = os.Stdout
+// NewClient initialises a new Maven client based on the parameters passed.
+// Goals are the tasks Maven should preform (i.e. install, package, etc).
+// Args are variables passed to the Maven build (i.e. -DskipTests).
+func NewClient(dir string, env, goals, args []string) Maven {
+	args = append(goals, args...)
+	return Maven{
+		Dir: dir,
+		cmd: exec.Cmd{
+			Args: args,
+			Env:  env,
+			Dir:  dir,
+		},
+		out: os.Stdout,
 	}
 }
 
-// Clean runs "mvn clean"
-func (m *Maven) Clean() {
-	m.initialiseCommand()
-	m.cmd.Args = append(m.cmd.Args, "clean")
-}
-
-// Build runs "mvn build"
-func (m *Maven) Build() {
-	m.initialiseCommand()
-	m.cmd.Args = append(m.cmd.Args, "install")
-}
-
-// Package runs "mvn package"
-func (m *Maven) Package() {
-	m.initialiseCommand()
-	m.cmd.Args = append(m.cmd.Args, "package")
-}
-
-// SkipTests appends "-DskipTests" to the command
-func (m *Maven) SkipTests() {
-	m.initialiseCommand()
-	m.cmd.Args = append(m.cmd.Args, "-DskipTests")
-}
-
-// SetDir changes the directory the command will execute in
-func (m *Maven) SetDir(d string) {
-	m.initialiseCommand()
-	m.cmd.Dir = d
+// NewCustomClient initialises a new Maven client based on the parameters passed.
+// With the added option to override the Maven binary path
+func NewCustomClient(path, dir string, env, goals, args []string) Maven {
+	args = append(goals, args...)
+	return Maven{
+		Dir: dir,
+		cmd: exec.Cmd{
+			Path: path,
+			Args: args,
+			Env:  env,
+			Dir:  dir,
+		},
+		out: os.Stdout,
+	}
 }
 
 // Run executes the built command

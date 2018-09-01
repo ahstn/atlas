@@ -62,17 +62,8 @@ func ProjectAction(c *cli.Context) error {
 
 // TODO: Handle Package Args
 func createAndRunBuilder(p string, mvn builder.Builder, app config.Service, c *cli.Context) {
-	if app.HasTask("clean") {
-		mvn.Clean()
-	}
-	if app.HasTask("build") {
-		mvn.Build()
-	}
-	if !app.HasTask("test") {
-		mvn.SkipTests()
-	}
-	if app.HasTask("package") && !app.HasPackageSubDir() {
-		mvn.Package()
+	if !app.HasPackageSubDir() {
+		mvn = builder.NewClient(p, nil, app.Tasks, nil)
 	}
 
 	if err := mvn.Run(c.Bool("verbose")); err != nil {
@@ -82,9 +73,7 @@ func createAndRunBuilder(p string, mvn builder.Builder, app config.Service, c *c
 	// In the event package pom lives in a seperate folder and needs to be ran
 	// after the build, handle as such.
 	if app.HasTask("package") && app.HasPackageSubDir() {
-		mvn = &builder.Maven{Dir: p}
-
-		mvn.Package()
+		mvn = builder.NewClient(app.Package.SubDir, nil, []string{"package"}, nil)
 		if err := mvn.Run(c.Bool("verbose")); err != nil {
 			panic(err)
 		}
