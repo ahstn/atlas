@@ -29,7 +29,6 @@ type Maven struct {
 func NewClient(dir string, env, goals, args []string) *Maven {
 	args = append(goals, args...)
 	path, _ := exec.LookPath("mvn")
-	fmt.Println("path", path, "args", args)
 	return &Maven{
 		Dir: dir,
 		cmd: exec.Cmd{
@@ -77,7 +76,6 @@ func (m Maven) Run(v bool) error {
 		return err
 	}
 
-	fmt.Println("started")
 	err = m.cmd.Wait()
 	if err != nil {
 		return err
@@ -113,7 +111,7 @@ func printLog(s *bufio.Scanner, out io.Writer, wg *sync.WaitGroup) {
 		}
 
 		if failedTests {
-			fmt.Printf("\n%s", s.Text())
+			fmt.Fprintf(out, "\n%s", s.Text())
 		} else if len(s.Text()) > 30 && strings.Contains(s.Text()[:30], "Building") {
 			// If another "Building" string is detected, last build is done
 			// therefore update the last spinner

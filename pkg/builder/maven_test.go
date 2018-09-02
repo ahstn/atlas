@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,6 +39,20 @@ var fakeErrorOutput = `
 [ERROR] For more information about the errors and possible solutions, please read the following articles
 `
 
+var fakeTestOutput = `
+[INFO] ------------------------------------------------------------------------
+[INFO] Building test-app 1.0.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[ERROR] TestGetUserStatusOkay(io.ahstn.usersapi.repositories.UserRepositoryTest)  Time elapsed: 1.004 s  <<< FAILURE!
+[INFO]
+[INFO] Results:
+[INFO]
+[ERROR] Failures:
+[ERROR]   UserRepositoryTest.TestGetUserStatusOkay:39
+[INFO]
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0
+`
+
 func TestNewClient(t *testing.T) {
 	mvn := NewClient("./", nil, []string{"install"}, []string{"-DskipTests"})
 
@@ -57,18 +70,6 @@ func TestNewCustomClient(t *testing.T) {
 	assert.Equal(t, path, mvn.cmd.Path)
 }
 
-func TestArgs(t *testing.T) {
-	mvn := NewClient("./", nil, []string{"clean install"}, nil)
-
-	assert.Equal(t, "mvn --batch-mode clean install", mvn.Args())
-}
-func TestModifyArgs(t *testing.T) {
-	mvn := NewClient("./", nil, []string{"clean install"}, nil)
-	mvn.ModifyArgs([]string{"package"})
-
-	assert.Equal(t, "mvn --batch-mode package", mvn.Args())
-}
-
 func TestRun(t *testing.T) {
 	var buf bytes.Buffer
 
@@ -79,12 +80,23 @@ func TestRun(t *testing.T) {
 
 	mvn.Run(false)
 
-	if !strings.Contains(buf.String(), "✔  test-app 1.0.0-SNAPSHOT Complete") {
-		t.Fatal("Expected output to have 'app Complete'. Got:", buf.String())
+	assert.Contains(t, buf.String(), "✔  test-app 1.0.0-SNAPSHOT Complete")
+	assert.Contains(t, buf.String(), "✔  jar: target/test-app.jar Complete")
+}
+
+func TestJUnitFailureRun(t *testing.T) {
+	var buf bytes.Buffer
+
+	mvn := Maven{
+		cmd: *fakeExecCommandTestFailure("mvn", "clean", "install"),
+		out: &buf,
 	}
-	if !strings.Contains(buf.String(), "✔  jar: target/test-app.jar Complete") {
-		t.Fatal("Expected output to have '.jar Complete'. Got:", buf.String())
-	}
+
+	mvn.Run(false)
+
+	assert.Contains(t, buf.String(), "Failures:")
+	assert.Contains(t, buf.String(), "UserRepositoryTest.TestGetUserStatusOkay:39")
+	assert.Contains(t, buf.String(), "Tests run: 2, Failures: 1, Errors: 0")
 }
 
 func TestErrorRun(t *testing.T) {
@@ -97,9 +109,9 @@ func TestErrorRun(t *testing.T) {
 
 	mvn.Run(false)
 
-	if !strings.Contains(buf.String(), "[ERROR] No goals have been specified for this build.") {
-		t.Fatal("Expected output to have 'app Complete'. Got:", buf.String())
-	}
+	assert.Contains(t, buf.String(), "[ERROR] No goals have been specified for this build.")
+	assert.NotContains(t, buf.String(), "To see the full stack trace of the errors")
+	assert.NotContains(t, buf.String(), "Re-run Maven using the -X switch")
 }
 
 func TestVerboseRun(t *testing.T) {
@@ -112,9 +124,20 @@ func TestVerboseRun(t *testing.T) {
 
 	mvn.Run(true)
 
-	if !strings.Contains(buf.String(), "[INFO] Building test-app 1.0.0-SNAPSHOT") {
-		t.Fatal("Expected output to have 'app Complete'. Got:", buf.String())
-	}
+	assert.Contains(t, buf.String(), "[INFO] Building test-app 1.0.0-SNAPSHOT")
+}
+
+func TestArgs(t *testing.T) {
+	mvn := NewClient("./", nil, []string{"clean install"}, nil)
+
+	assert.Equal(t, "mvn --batch-mode clean install", mvn.Args())
+}
+
+func TestModifyArgs(t *testing.T) {
+	mvn := NewClient("./", nil, []string{"clean install"}, nil)
+	mvn.ModifyArgs([]string{"package"})
+
+	assert.Equal(t, "mvn --batch-mode package", mvn.Args())
 }
 
 func fakeExecCommand(command string, args ...string) *exec.Cmd {
@@ -122,6 +145,14 @@ func fakeExecCommand(command string, args ...string) *exec.Cmd {
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	return cmd
+}
+
+func fakeExecCommandTestFailure(command string, args ...string) *exec.Cmd {
+	cs := []string{"-test.run=TestHelperProcess", "--", command}
+	cs = append(cs, args...)
+	cmd := exec.Command(os.Args[0], cs...)
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1", "GO_WANT_TEST_FAIL=1"}
 	return cmd
 }
 
@@ -141,6 +172,8 @@ func TestHelperProcess(*testing.T) {
 
 	if os.Getenv("GO_WANT_ERR") == "1" {
 		fmt.Print(fakeErrorOutput)
+	} else if os.Getenv("GO_WANT_TEST_FAIL") == "1" {
+		fmt.Print(fakeTestOutput)
 	} else {
 		fmt.Print(fakeOutput)
 	}
