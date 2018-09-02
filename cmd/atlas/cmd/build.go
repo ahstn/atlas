@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/ahstn/atlas/cmd/atlas/flag"
 	"github.com/ahstn/atlas/pkg/builder"
 	"github.com/urfave/cli"
@@ -29,10 +31,6 @@ func BuildAction(c *cli.Context) error {
 		goals = append([]string{"clean"}, goals...)
 	}
 
-	mvn := builder.NewClient("./", nil, goals, nil)
-	if err := mvn.Run(c.Bool("verbose")); err != nil {
-		panic(err)
-	}
-
-	return nil
+	mvn := builder.NewClient(os.Getenv("PWD"), nil, goals, nil)
+	return mvn.Run(c.Bool("verbose"))
 }

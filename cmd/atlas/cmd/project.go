@@ -7,6 +7,7 @@ import (
 	"github.com/ahstn/atlas/pkg/builder"
 	"github.com/ahstn/atlas/pkg/config"
 	"github.com/ahstn/atlas/pkg/docker"
+	"github.com/ahstn/atlas/pkg/util"
 	"github.com/ahstn/atlas/pkg/validator"
 	"github.com/urfave/cli"
 	emoji "gopkg.in/kyokomi/emoji.v1"
@@ -48,7 +49,7 @@ func ProjectAction(c *cli.Context) error {
 	emoji.Printf(":file_folder:Operating in base directory [%v]\n", cfg.Root)
 	for _, app := range cfg.Services {
 		emoji.Printf("\n:wrench:Building: %v [%v]...\n", app.Name, app.Path)
-		mvn.Dir = app.Path
+		mvn = builder.NewClient(app.Path, app.Env, app.Tasks, app.Args)
 		createAndRunBuilder(app.Path, mvn, *app, c)
 
 		emoji.Printf(":whale:Building Dockerfile: %v [%v]...\n", app.Name, app.Path)
@@ -61,23 +62,20 @@ func ProjectAction(c *cli.Context) error {
 }
 
 // TODO: Handle Package Args
-func createAndRunBuilder(p string, mvn builder.Builder, app config.Service, c *cli.Context) {
-	if !app.HasPackageSubDir() {
-		mvn = builder.NewClient(p, nil, app.Tasks, nil)
-	}
-
-	if err := mvn.Run(c.Bool("verbose")); err != nil {
-		panic(err)
-	}
-
+func createAndRunBuilder(p string, mvn builder.Builder, app config.Service, c *cli.Context) error {
 	// In the event package pom lives in a seperate folder and needs to be ran
 	// after the build, handle as such.
 	if app.HasTask("package") && app.HasPackageSubDir() {
-		mvn = builder.NewClient(app.Package.SubDir, nil, []string{"package"}, nil)
+		mvn.ModifyArgs(util.StringSliceRemove(app.Tasks, "package"))
 		if err := mvn.Run(c.Bool("verbose")); err != nil {
-			panic(err)
+			return err
 		}
+
+		mvn.ModifyArgs([]string{"package", app.Package.Args})
+		return mvn.Run(c.Bool("verbose"))
 	}
+
+	return mvn.Run(c.Bool("verbose"))
 }
 
 func runDockerBuild(p string, app config.Service) error {

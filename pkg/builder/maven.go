@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/ahstn/atlas/pkg/pb"
+	"github.com/ahstn/atlas/pkg/util"
 	"github.com/briandowns/spinner"
 )
 
@@ -21,15 +22,19 @@ type Maven struct {
 	out io.Writer
 }
 
-// NewClient initialises a new Maven client based on the parameters passed.
+// NewClient initialises a new Maven client based on the parameters passed
 // Goals are the tasks Maven should preform (i.e. install, package, etc).
 // Args are variables passed to the Maven build (i.e. -DskipTests).
-func NewClient(dir string, env, goals, args []string) Maven {
+// --batch-mode is used to remove extra escape characters for color and bold.
+func NewClient(dir string, env, goals, args []string) *Maven {
 	args = append(goals, args...)
-	return Maven{
+	path, _ := exec.LookPath("mvn")
+	fmt.Println("path", path, "args", args)
+	return &Maven{
 		Dir: dir,
 		cmd: exec.Cmd{
-			Args: args,
+			Path: path,
+			Args: append([]string{"mvn", "--batch-mode"}, args...),
 			Env:  env,
 			Dir:  dir,
 		},
@@ -42,12 +47,10 @@ func NewClient(dir string, env, goals, args []string) Maven {
 func NewCustomClient(path, dir string, env, goals, args []string) Maven {
 	args = append(goals, args...)
 	return Maven{
-		Dir: dir,
 		cmd: exec.Cmd{
 			Path: path,
-			Args: args,
+			Args: append([]string{"mvn", "--batch-mode"}, args...),
 			Env:  env,
-			Dir:  dir,
 		},
 		out: os.Stdout,
 	}
@@ -60,32 +63,21 @@ func (m Maven) Run(v bool) error {
 		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
 	}
 
-	stderrPipe, err := m.cmd.StderrPipe()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating StderrPipe for Cmd", err)
-	}
-
 	scanner := bufio.NewScanner(stdoutPipe)
 	var wg sync.WaitGroup
 	if v {
-		go printVerboseLog(scanner)
+		go printVerboseLog(scanner, m.out)
 	} else {
 		wg.Add(1)
 		go printLog(scanner, m.out, &wg)
 	}
-
-	errScanner := bufio.NewScanner(stderrPipe)
-	go func() {
-		for errScanner.Scan() {
-			//fmt.Printf("[ERROR]: %s\n", errScanner.Text())
-		}
-	}()
 
 	err = m.cmd.Start()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("started")
 	err = m.cmd.Wait()
 	if err != nil {
 		return err
@@ -95,11 +87,25 @@ func (m Maven) Run(v bool) error {
 	return nil
 }
 
+func checkError(s string, out io.Writer, queue []*spinner.Spinner) {
+	var ignored = []string{
+		"To see the full", "Re-run Maven using", "For more info",
+	}
+	if strings.Contains(s, "ERROR") {
+		if strings.TrimSpace(s) != "[ERROR]" && !util.StringContainsAny(s, ignored...) {
+			x := queue[0]
+			x.Stop()
+			fmt.Fprintln(out, s)
+		}
+	}
+}
+
 func printLog(s *bufio.Scanner, out io.Writer, wg *sync.WaitGroup) {
 	failedTests := false
 	queue := make([]*spinner.Spinner, 0)
 	//TODO: Handle Packaging output
 	for s.Scan() {
+		checkError(s.Text(), out, queue)
 		if strings.Contains(s.Text(), "Failed tests:") {
 			failedTests = true
 		} else if strings.Contains(s.Text(), "Tests run:") {
@@ -108,8 +114,6 @@ func printLog(s *bufio.Scanner, out io.Writer, wg *sync.WaitGroup) {
 
 		if failedTests {
 			fmt.Printf("\n%s", s.Text())
-		} else if strings.Contains(s.Text(), "Failed to execute goal") {
-			fmt.Printf("\n\n%s\n", s.Text())
 		} else if len(s.Text()) > 30 && strings.Contains(s.Text()[:30], "Building") {
 			// If another "Building" string is detected, last build is done
 			// therefore update the last spinner
@@ -141,12 +145,16 @@ func printLog(s *bufio.Scanner, out io.Writer, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func printVerboseLog(scanner *bufio.Scanner) {
+func printVerboseLog(scanner *bufio.Scanner, out io.Writer) {
 	for scanner.Scan() {
-		fmt.Printf("\n%s", scanner.Text())
+		fmt.Fprintf(out, "\n%s", scanner.Text())
 	}
 }
 
 func (m Maven) Args() string {
-	return m.cmd.Path
+	return strings.Join(m.cmd.Args, " ")
+}
+
+func (m *Maven) ModifyArgs(args []string) {
+	m.cmd.Args = append([]string{"mvn", "--batch-mode"}, args...)
 }

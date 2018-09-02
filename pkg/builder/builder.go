@@ -1,5 +1,7 @@
 package builder
 
+//go:generate mockery -name Builder -case underscore
+
 // Builder defines the actions that an app packager typically preforms.
 // i.e "mvn clean install", "go install"
 //
@@ -10,7 +12,10 @@ type Builder interface {
 	// initialised correctly
 	Run(bool) error
 
-	// Args is a method that allows users to quickly have access to the arguments
+	// Args allows users to quickly have access to the arguments
 	// the builder is planning to execute
 	Args() string
+
+	// ModifyArgs allows users to edit the commands arguments
+	ModifyArgs([]string)
 }

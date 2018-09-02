@@ -22,6 +22,8 @@ type Service struct {
 	Repo    string         `yaml:"repo" json:"repo,omitempty"`
 	Path    string         `yaml:"path" json:"path,omitempty"`
 	Tasks   []string       `yaml:"tasks" json:"tasks,omitempty"`
+	Args    []string       `yaml:"args" json:"args,omitempty"`
+	Env     []string       `yaml:"env" json:"env,omitempty"`
 	Test    bool           `yaml:"test" json:"test,omitempty"`
 }
 
@@ -54,8 +56,8 @@ type DockerArtifact struct {
 
 // Package stores packaging information relating to the build
 type Package struct {
-	Parameters string `yaml:"parameters"`
-	SubDir     string `yaml:"subDir"`
+	Args   string `yaml:"args"`
+	SubDir string `yaml:"subDir"`
 }
 
 // Read attempts to parse the config file located at the path passed in
