@@ -5,7 +5,6 @@ import (
 
 	"github.com/ahstn/atlas/cmd/atlas/flag"
 	"github.com/ahstn/atlas/pkg/builder"
-	"github.com/apex/log"
 	"github.com/urfave/cli"
 )
 
@@ -26,18 +25,12 @@ var Build = cli.Command{
 // While also allowing commands to be chained
 // i.e. "atlas clean build"
 func BuildAction(c *cli.Context) error {
-	var mvn builder.Maven
+	goals := []string{"install"}
 
-	if c.Bool("clean") {
-		mvn.Clean()
+	if c.IsSet("clean") {
+		goals = append([]string{"clean"}, goals...)
 	}
 
-	mvn.Build()
-
-	if err := mvn.Run(c.Bool("verbose")); err != nil {
-		log.Info("Error:" + err.Error())
-		os.Exit(1)
-	}
-
-	return nil
+	mvn := builder.NewClient(os.Getenv("PWD"), nil, goals, nil)
+	return mvn.Run(c.Bool("verbose"))
 }

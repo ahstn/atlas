@@ -33,37 +33,6 @@ var Docker = cli.Command{
 	},
 }
 
-func runAction(c *cli.Context) error {
-	product := config.DockerArtifact{
-		Tag: "product-api:test",
-	}
-	user := config.DockerArtifact{
-		Tag: "users-api:test",
-	}
-	var err1 = make(chan error)
-	var err2 = make(chan error)
-
-	ctx := context.Background()
-	go func() {
-		err1 <- docker.RunContainer(ctx, product)
-	}()
-	go func() {
-		err2 <- docker.RunContainer(ctx, user)
-	}()
-
-	err := <-err1
-	if err != nil {
-		panic(err)
-	}
-
-	err = <-err2
-	if err != nil {
-		panic(err)
-	}
-
-	return nil
-}
-
 // DockerAction handles building a container
 func DockerAction(c *cli.Context) error {
 	ctx := context.Background()

@@ -1,14 +1,15 @@
 package cmd
 
 import (
+	"errors"
 	"flag"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/ahstn/atlas/pkg/builder/mocks"
 	"github.com/ahstn/atlas/pkg/config"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/urfave/cli"
 )
@@ -18,7 +19,7 @@ const (
 	errCfgFormat  = "config should be a .yaml file"
 )
 
-func Test_PanicWithNoConfig(t *testing.T) {
+func TestPanicWithNoConfig(t *testing.T) {
 	app := cli.App{
 		Commands: []cli.Command{
 			Project,
@@ -50,7 +51,7 @@ func Test_PanicWithNoConfig(t *testing.T) {
 	}
 }
 
-func Test_PanicWithInvalidConfig(t *testing.T) {
+func TestPanicWithInvalidConfig(t *testing.T) {
 	app := cli.App{
 		Commands: []cli.Command{
 			Project,
@@ -88,33 +89,36 @@ func Test_PanicWithInvalidConfig(t *testing.T) {
 	}
 }
 
-func Test_createAndRunBuilder(t *testing.T) {
-	mvn := &mocks.Builder{}
+func TestCreateAndRunBuilder(t *testing.T) {
+	set := flag.NewFlagSet("test", 0)
+	c := cli.NewContext(nil, set, nil)
+
 	app := config.Service{
+		Tasks: []string{"clean", "build", "package"},
+		Package: config.Package{
+			SubDir: "package/",
+		},
+	}
+	mvn := &mocks.Builder{}
+	mvn.On("Run", mock.AnythingOfType("bool")).Return(nil)
+	mvn.On("ModifyArgs", mock.AnythingOfType("[]string")).Return(nil)
+
+	createAndRunBuilder("", mvn, app, c)
+	mvn.AssertNumberOfCalls(t, "ModifyArgs", 2)
+	mvn.AssertNumberOfCalls(t, "Run", 2)
+
+	app = config.Service{
 		Tasks: []string{"clean", "build"},
 	}
-
-	set := flag.NewFlagSet("test", 0)
-	set.Bool("verbose", false, "doc")
-	globalSet := flag.NewFlagSet("test", 0)
-	globalCtx := cli.NewContext(nil, globalSet, nil)
-	c := cli.NewContext(nil, set, globalCtx)
-
-	mvn.On("Clean").Return(nil)
-	mvn.On("Build").Return(nil)
-	mvn.On("SkipTests").Return(nil)
+	mvn = &mocks.Builder{}
 	mvn.On("Run", mock.AnythingOfType("bool")).Return(nil)
+
 	createAndRunBuilder("", mvn, app, c)
+	mvn.AssertNumberOfCalls(t, "Run", 1)
 
-	if !strings.Contains(mvn.Args(), "clean") {
-		t.Fatal("Expected args to include 'clean'. Got:", mvn.Args())
-	}
+	mvn = &mocks.Builder{}
+	mvn.On("Run", mock.AnythingOfType("bool")).Return(errors.New("mock error"))
 
-	if !strings.Contains(mvn.Args(), "build") {
-		t.Fatal("Expected args to include 'build'. Got:", mvn.Args())
-	}
-
-	if !strings.Contains(mvn.Args(), "-DskipTests") {
-		t.Fatal("Expected args to include '-DskipTests'. Got:", mvn.Args())
-	}
+	err := createAndRunBuilder("", mvn, app, c)
+	assert.EqualError(t, err, "mock error")
 }
