@@ -23,8 +23,10 @@
 * [Config](#config)
 
 ## Introduction
-`atlas` is a CLI tool that leverages development applications to make common tasks more efficient.
-One of the main purposes is to make builds simpler across multiple repos while providing an aesthetic user interface.
+`atlas` is a CLI tool that leverages development applications to make common
+tasks more efficient.
+One of the main purposes is to make builds simpler across multiple repos while
+providing an aesthetic user interface.
 ```
 ➜ atlas help
 NAME:
@@ -58,7 +60,7 @@ Feature requests in the form of GitHub issues and comments on current issues are
 welcomed and encourged to help shape `atlas`.
 
 ## Preview
-Maven and Docker build example using the config file in `exmaples/java/`:
+Maven and Docker build example using the config file in `examples/java/`:
 [![asciicast](https://asciinema.org/a/197066.png)](https://asciinema.org/a/197066)
 
 
@@ -70,8 +72,8 @@ Documentation to be completed, and features are in progress but for now:
 * Opening Git repository in browser from the terminal.
 * Allowing users to execute Git commands against multiple repos at once (clone, checkout, update).
 * Opening GitHub/JIRA issue in browser from the terminal.
-* .gitignore generator with language detection.
-* Dockerfile generator with language detection.
+* .gitignore generator with language detection. (not yet impl)
+* Dockerfile generator with language detection. (not yet impl)
 
 # Commands
 ## `atlas project`
@@ -86,7 +88,8 @@ you can customise whether tests are run for certain apps, if you want Docker
 builds to run, what arguments should be passed when running the application and
 much more!
 
-You can read more about the configuration file and usage in the [config section](#config).
+You can read more about the configuration file and usage in
+the [config section](#config).
 ```
 ➜ atlas help project
 NAME:
@@ -120,13 +123,16 @@ OPTIONS:
 ```
 
 ## `atlas git`
-Wrapper around Git that allows the user to execute commands against many repos at once.
-Instead of having to jump into multiple directories, then `git pull` or `git checkout -b new-feature`,
+Wrapper around Git that allows the user to execute commands against many repos
+at once.
+Instead of having to jump into multiple directories, then `git pull` or
+`git checkout -b new-feature`,
 `atlas` can handle this in one command.
 
 From the usage below you can see the available commands.
 One example to run would be `atlas git clone -c atlas.yaml -e auth`.
-Which will clone all the applications specified in your config into the `config root dir`, excluding the `auth` service.
+Which will clone all the applications specified in your config into the `config
+root dir`, excluding the `auth` service.
 ```
 ➜ atlas help git
 NAME:
@@ -179,8 +185,29 @@ OPTIONS:
 ```
 
 # Config
-To be finalised and documented..
+Config files are the backbone of `atlas`' `project` command and aid in one of
+the main goals of the project. These file(s) act as a set of requirements or
+steps that you, the user, want to happen. The file itself can be passed into
+some commands via the `--config [FILE]` flag. `atlas` will firstly look in the
+current working dir for the file and then in it's config dir (`~/.config/atlas/`).
+The goal of this is too allow easy and quick switching between multiple config
+files.
 
-In the meantime, the project wiki has some information on using config: [`atlas` wiki](https://github.com/ahstn/atlas/wiki/Config)
+For `atlas` to operate on multiple applications, they must have a common parent
+directory. For most users this will likely be your `~/git/` folder and should be
+specified in the config as `root`. The config should then contain an array of
+applications with metadata and information about the taks you want to preform.
+As a core idea, the application information should describe the end state and
+shouldn't require in-depth details describing your tasks or the process.
 
-[eugenp/tutorials]: https://github.com/eugenp/tutorials/
+An annoted example describing the config file and it's available fields is in
+the project root: [atlas.example.yaml]. Specific relatable examples exist in the
+ [examples folder]. For now only a simple Java "microservices" setup is there,
+ but hopefully it should give you a rough idea.
+
+For more information on using config, please refer to the project
+wiki: [`atlas` config wiki]
+
+[atlas.example.yaml]: ./atlas.example.yaml
+[examples folder]: ./examples
+[`atlas` config wiki]: https://github.com/ahstn/atlas/wiki/Config

@@ -1,29 +1,82 @@
 ---
+# The parent directory of all projects locally.
+# Shorthand is allowed ('~') as atlas will determine the full path.
 root: ~/git
+# The applications you intend to build.
+# Must be in a YAML array format.
 services:
+  # First Application: Backend API.
   -
     docker:
+      # Switch for Docker builds and runs.
+      enabled: true
+      # Dockerfile path, if omitted, atlas will attempt to search for it
+      # in the applications base directory.
       dockerfile: ./auth/Dockerfile
-      enabled: false
+      # Won't be necessary for most workflows, but allows the application
+      # implementation and Dockerfile to live in seperate directories. (not yet impl)
+      path: ./auth-service
+      # Final tag/name assigned to the Docker image after build.
+      tag: "ahstn/auth:0.1.0"
+      # Docker build args.
+      # Must be in the format 'key=value'
+      args:
+        - JAVA_VERSION=8
+      # Docker runtime container command override.
+      cmd: 'java -jar app.jar'
+      # Docker runtime environment variables.
+      # Must be in the format 'key=value'
+      env:
+        - API_BASE_URL=/api/v1/
+      # Docker runtime exposed ports, behave the same as the official client.
+      # https://docs.docker.com/engine/reference/run/#expose-incoming-ports
+      ports:
+        - "8090:80"
+    # Application name, used as the directory name where the application lives
+    # and also for logging/output purposes.
     name: auth
+    # Version control repository, only used for Git operations.
     repo: "https://github.com/ahstn/auth"
+    # Application build tasks. (i.e. Maven goals or NPM run aliases/scripts)
     tasks:
       - clean
       - build
       - test
+    # Additional parameters passed to the build process. (not yet impl)
+    parameters: "-Djava.compile.version=1.6"
+    # Won't be necessary for most workflows and intended only for Maven.
+    # Allows users to have a seperate package module/directory for their app,
+    # which will be executed as a sperate process.
+    # Requires 'package' to be specified in the 'tasks' array above.
     package:
+      # Additional parameters passed to the package process. (not yet impl)
       parameters: "-Drpm.version=1"
+      # Path to the package subdirectory.
       subdir: "package/"
+
+  # Second Application: Frontend UI.
+  # Unannotated variation for copy and paste.
   -
     docker:
-      dockerfile: ./web/Dockerfile
       enabled: false
+      dockerfile: ./web/Dockerfile
+      path: ./web-service
+      tag: "ahstn/web:0.1.0"
       args:
-        - "JAVA_VERSION=8"
-      tag: auth:1.3.0
+        - JAVA_VERSION=8
+      cmd: 'java -jar app.jar'
+      env:
+        - API_BASE_URL=/api/v1/
+      ports:
+        - "8090:80"
     name: web
     repo: "https://github.com/ahstn/web"
     tasks:
       - clean
       - build
       - test
+    parameters: "-Djava.compile.version=1.6"
+    package:
+      parameters: "-Drpm.version=1"
+      subdir: "package/"
+
