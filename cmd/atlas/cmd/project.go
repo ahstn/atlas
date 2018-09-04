@@ -63,6 +63,10 @@ func ProjectAction(c *cli.Context) error {
 
 // TODO: Handle Package Args
 func createAndRunBuilder(p string, mvn builder.Builder, app config.Service, c *cli.Context) error {
+	if len(app.Tasks) == 0 {
+		emoji.Print("  :zzz: Maven build disabled. Skipping...\n")
+		return nil
+	}
 	// In the event package pom lives in a seperate folder and needs to be ran
 	// after the build, handle as such.
 	if app.HasTask("package") && app.HasPackageSubDir() {
