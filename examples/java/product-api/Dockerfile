@@ -9,4 +9,5 @@ RUN mvn -B -o -T 1C verify
 
 FROM openjdk:jre-alpine as target
 COPY --from=builder /usr/src/app/target/app.jar /app.jar
+COPY src/main/resources/* /
 ENTRYPOINT ["java", "-jar", "/app.jar"]

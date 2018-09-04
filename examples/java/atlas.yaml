@@ -4,20 +4,24 @@ services:
   -
     docker:
       dockerfile: ./Dockerfile
-      enabled: false
+      enabled: true
       tag: product-api:test
+      ports:
+        - "8090:8080"
     name: product-api
     repo: https://github.com/ahstn/atlas.git
     tasks:
       - clean
-      - build
+      - install
   -
     docker:
       dockerfile: ./Dockerfile
-      enabled: false
+      enabled: true
       tag: users-api:test
+      ports:
+        - "8091:8080"
     name: users-api
     repo: https://github.com/ahstn/atlas.git
     tasks:
       - clean
-      - build
+      - install

@@ -11,4 +11,4 @@ $ atlas project -c atlas.yaml
 ```
 
 ### Preview
-<img src="https://i.imgur.com/qTMfB5z.png" width="890">
+<img src="https://i.imgur.com/EJoCtWq.png" width="890">
