@@ -80,7 +80,7 @@ func getExtension(filename string) Language {
 		return Go
 	case string(Java):
 		return Java
-	case string(JavaScript):
+	case string(JavaScript), "js", "jsx", "ts":
 		return JavaScript
 	default:
 		return Unknown
