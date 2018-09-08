@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -10,44 +11,68 @@ import (
 	"github.com/karrick/godirwalk"
 )
 
-type language string
-type languageLines map[language]int
-
 const (
-	Go         language = "go"
-	Java       language = "java"
-	JavaScript language = "javascript"
-	Unknown    language = "unknown"
+	Go         Language = "go"
+	Java       Language = "java"
+	JavaScript Language = "javascript"
+	Unknown    Language = "unknown"
+)
+
+type (
+	// Language is an enum of the supported programming languages.
+	// Mainly used for making code more readable and comparisons easier
+	Language string
+
+	// Percentages is a map containing a repo's languages and the percentages
+	// detailing the repo's makeup for each language
+	Percentages map[Language]float64
+
+	languageLines map[Language]int
+
+	// RepoResult is the final result of processing a repo
+	RepoResult struct {
+		// Map containing all the languages detected and their overall percentage
+		// makeup of the repo.
+		Percentages Percentages
+
+		// The primary language used in the repo, ultimately to save mutliple
+		// map iterations across this codebase to determine the primary language.
+		Language Language
+	}
 )
 
 // DetectLanguage traverses the current directory and calculates the
 // amount of language files they are (percentage based)
-func DetectLanguage(dir string) error {
-	var languages map[language]int
+func DetectLanguage(dir string) (RepoResult, error) {
+	languages := make(map[Language]int)
 	var total int
 
 	err := godirwalk.Walk(dir, &godirwalk.Options{
 		Callback: func(osPathname string, de *godirwalk.Dirent) error {
 			if de.ModeType() != os.ModeDir {
-				lines, _ := lineCounter(osPathname)
-				languages[getExtension(osPathname)] += lines
-				total++
+				// We only want to count valid languages
+				if ext := getExtension(osPathname); ext != Unknown {
+					lines, _ := lineCounter(osPathname)
+					languages[getExtension(osPathname)] += lines
+					total += lines
+					fmt.Printf("%s : %d (%d)\n", getExtension(osPathname), lines, total)
+				}
 			}
-			fmt.Printf("%s %s\n", de.ModeType(), osPathname)
 			return nil
 		},
 		Unsorted: true,
 	})
 
+	if err != nil {
+		return RepoResult{}, err
+	}
+
 	// Calculate percentages at the end rather than after every file
 	// Might be better keeping an ordered slice (highest at top)
-	percentages := calculatePercentages(languages, total)
-	fmt.Println(percentages)
-
-	return err
+	return calculatePercentages(languages, total)
 }
 
-func getExtension(filename string) language {
+func getExtension(filename string) Language {
 	f := strings.Split(filename, ".")
 
 	switch f[len(f)-1] {
@@ -82,11 +107,27 @@ func lineCounter(filename string) (int, error) {
 	}
 }
 
-func calculatePercentages(languages map[language]int, total int) map[language]float32 {
-	var percentages map[language]float32
+func calculatePercentages(languages map[Language]int, total int) (RepoResult, error) {
+	percentages := make(Percentages)
+	primaryLanguage := Unknown
+	primaryPercentage := 0.0
+
 	for k, v := range languages {
-		percentages[k] = float32(v/total) * 100
+		percentage := float64(v) / float64(total) * 100
+		percentages[k] = percentage
+
+		if percentage > 100 {
+			return RepoResult{}, errors.New("error calculating repo percentages")
+		}
+		if percentage > primaryPercentage {
+			primaryLanguage = k
+		}
+
+		fmt.Printf("(%d / %d) * 100 = %f\n", v, total, float32(v)/float32(total)*100)
 	}
 
-	return percentages
+	return RepoResult{
+		Percentages: percentages,
+		Language:    primaryLanguage,
+	}, nil
 }
