@@ -7,6 +7,6 @@ import (
 )
 
 func TestPadLeft(t *testing.T) {
-	assert.Equal(t, PadLeft("test"), "           test")
-	assert.Equal(t, PadLeftColor(RandomOutputColor(), "test"), "           test")
+	assert.Equal(t, PadLeft("test"), "        test")
+	assert.Equal(t, PadLeftColor(RandomOutputColor(), "test"), "        test")
 }
