@@ -8,6 +8,7 @@ import (
 	"github.com/ahstn/atlas/pkg/config"
 	"github.com/ahstn/atlas/pkg/docker"
 	"github.com/ahstn/atlas/pkg/validator"
+	"github.com/docker/docker/client"
 	"github.com/urfave/cli"
 )
 
@@ -58,5 +59,11 @@ func DockerAction(c *cli.Context) error {
 		Path:       p,
 		Dockerfile: path.Join(p, "Dockerfile"),
 	}
-	return docker.ImageBuild(ctx, artifact)
+
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
+
+	return docker.ImageBuild(ctx, cli, artifact)
 }

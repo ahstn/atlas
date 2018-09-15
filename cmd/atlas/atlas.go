@@ -1,11 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/ahstn/atlas/cmd/atlas/cmd"
 	"github.com/ahstn/atlas/cmd/atlas/flag"
@@ -31,14 +28,6 @@ func main() {
 			flag.Verbose,
 		},
 	}
-
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		fmt.Println("\nUser Shutdown..")
-		os.Exit(1)
-	}()
 
 	err := app.Run(os.Args)
 	if err != nil {

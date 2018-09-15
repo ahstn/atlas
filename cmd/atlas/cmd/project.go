@@ -9,6 +9,7 @@ import (
 	"github.com/ahstn/atlas/pkg/docker"
 	"github.com/ahstn/atlas/pkg/util"
 	"github.com/ahstn/atlas/pkg/validator"
+	"github.com/docker/docker/client"
 	"github.com/urfave/cli"
 	emoji "gopkg.in/kyokomi/emoji.v1"
 )
@@ -31,6 +32,7 @@ var Project = cli.Command{
 // TODO: Proper logging and error handling
 func ProjectAction(c *cli.Context) error {
 	ctx := context.Background()
+
 	f, err := validator.ValidateExists(c.String("config"))
 	if err != nil {
 		panic(err)
@@ -46,6 +48,11 @@ func ProjectAction(c *cli.Context) error {
 	}
 
 	mvn := &builder.Maven{}
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
+
 	emoji.Printf(":file_folder:Operating in base directory [%v]\n", cfg.Root)
 	for _, app := range cfg.Services {
 		emoji.Printf("\n:wrench:Building: %v [%v]...\n", app.Name, app.Path)
@@ -53,7 +60,7 @@ func ProjectAction(c *cli.Context) error {
 		createAndRunBuilder(app.Path, mvn, *app, c)
 
 		emoji.Printf(":whale:Building Dockerfile: %v [%v]...\n", app.Name, app.Path)
-		if err != runDockerBuild(app.Path, *app) {
+		if err != runDockerBuild(cli, app.Path, *app) {
 			panic(err)
 		}
 	}
@@ -82,29 +89,30 @@ func createAndRunBuilder(p string, mvn builder.Builder, app config.Service, c *c
 	return mvn.Run(c.Bool("verbose"))
 }
 
-func runDockerBuild(p string, app config.Service) error {
+func runDockerBuild(cli *client.Client, p string, app config.Service) error {
 	if !app.Docker.Enabled {
 		emoji.Print("  :zzz: Docker build disabled. Skipping...\n")
 		return nil
 	}
 
 	ctx := context.Background()
-	return docker.ImageBuild(ctx, app.Docker)
+	return docker.ImageBuild(ctx, cli, app.Docker)
 }
 
 func runDockerLogs(ctx context.Context, svcs []*config.Service) error {
 	quit := make(chan bool)
 	done := make(chan error)
 	for _, app := range svcs {
-		go func(d config.DockerArtifact) {
+		go func(d *config.DockerArtifact) {
 			var err error
-			err = docker.RunContainer(ctx, d)
+			cli, err := client.NewEnvClient()
+			err = docker.RunContainer(ctx, cli, d)
 
 			select {
 			case done <- err:
 			case <-quit:
 			}
-		}(app.Docker)
+		}(&app.Docker)
 	}
 
 	for range svcs {

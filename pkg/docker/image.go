@@ -24,7 +24,7 @@ var (
 )
 
 // ImageBuild takes a DockerArtifact and uses the Docker daemon for building
-func ImageBuild(c context.Context, d config.DockerArtifact) error {
+func ImageBuild(c context.Context, cli *client.Client, d config.DockerArtifact) error {
 	r, w := io.Pipe()
 	err := os.Chdir(d.Path) // Must be in app dir when building
 	if err != nil {
@@ -59,11 +59,6 @@ func ImageBuild(c context.Context, d config.DockerArtifact) error {
 		Tags:       []string{d.Tag},
 		Dockerfile: dockerfile,
 		BuildArgs:  args,
-	}
-
-	cli, err := client.NewClient(apiSocket, apiVersion, nil, apiHeaders)
-	if err != nil {
-		return err
 	}
 
 	res, err := cli.ImageBuild(c, r, opts)

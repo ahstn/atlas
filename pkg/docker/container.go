@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/ahstn/atlas/pkg/config"
@@ -12,12 +13,7 @@ import (
 )
 
 // RunContainer takes a DockerArtifact and runs it using the Docker Daemon
-func RunContainer(c context.Context, d config.DockerArtifact) error {
-	cli, err := client.NewEnvClient()
-	if err != nil {
-		return err
-	}
-
+func RunContainer(c context.Context, cli *client.Client, d *config.DockerArtifact) error {
 	ports, portBindings, err := nat.ParsePortSpecs(d.Ports)
 	if err != nil {
 		return err
@@ -41,6 +37,7 @@ func RunContainer(c context.Context, d config.DockerArtifact) error {
 	if err != nil {
 		return err
 	}
+	d.ID = resp.ID
 
 	if err := cli.ContainerStart(c, resp.ID, types.ContainerStartOptions{}); err != nil {
 		return err
@@ -53,18 +50,24 @@ func RunContainer(c context.Context, d config.DockerArtifact) error {
 
 	PrintRun(out, strings.Split(d.Tag, ":")[0])
 
-	statusCh, errCh := cli.ContainerWait(c, resp.ID, container.WaitConditionNotRunning)
-	select {
-	case err := <-errCh:
-		if err != nil {
-			return err
-		}
-	case <-statusCh:
-	}
-
 	return nil
 }
 
-func NewClient() (*client.Client, error) {
-	return client.NewEnvClient()
+// StopAndRemoveContainer stops and removes the container `c` using the `cli`
+func StopAndRemoveContainer(ctx context.Context, cli *client.Client, d config.DockerArtifact) error {
+	if d.ID == "" {
+		fmt.Println("NO ID")
+		return nil // if the ID isn't set, the container probably wasn't started
+	}
+
+	err := cli.ContainerStop(ctx, d.ID, nil)
+	if err != nil {
+		return err
+	}
+
+	err = cli.ContainerRemove(ctx, d.ID, types.ContainerRemoveOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
 }

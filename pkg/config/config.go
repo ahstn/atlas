@@ -44,6 +44,7 @@ func (s Service) HasPackageSubDir() bool {
 
 // DockerArtifact stores container information relating to the build
 type DockerArtifact struct {
+	ID         string
 	Args       []string `yaml:"args"`
 	Env        []string `yaml:"env"`
 	Ports      []string `yaml:"ports"`
@@ -52,6 +53,11 @@ type DockerArtifact struct {
 	Enabled    bool     `yaml:"enabled"`
 	Tag        string   `yaml:"tag"`
 	Cmd        string   `yaml:"cmd"`
+}
+
+// SetID is syntastic sugar for setting the Container's ID
+func (d *DockerArtifact) SetID(id string) {
+	d.ID = id
 }
 
 // Package stores packaging information relating to the build
