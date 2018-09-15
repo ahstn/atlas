@@ -2,6 +2,10 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/ahstn/atlas/cmd/atlas/flag"
 	"github.com/ahstn/atlas/pkg/builder"
@@ -32,6 +36,8 @@ var Project = cli.Command{
 // TODO: Proper logging and error handling
 func ProjectAction(c *cli.Context) error {
 	ctx := context.Background()
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt)
 
 	f, err := validator.ValidateExists(c.String("config"))
 	if err != nil {
@@ -52,6 +58,18 @@ func ProjectAction(c *cli.Context) error {
 	if err != nil {
 		panic(err)
 	}
+
+	go func() {
+		<-quit
+		fmt.Println("\n\nUser Shutdown - Cleaning up containers..")
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+
+		for _, app := range cfg.Services {
+			docker.StopAndRemoveContainer(ctx, cli, app.Docker)
+		}
+		os.Exit(1)
+	}()
 
 	emoji.Printf(":file_folder:Operating in base directory [%v]\n", cfg.Root)
 	for _, app := range cfg.Services {
