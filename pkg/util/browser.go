@@ -3,6 +3,7 @@ package util
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -10,6 +11,9 @@ import (
 
 // OpenBrowser opens the default browser at the supplied URL
 func OpenBrowser(url string) error {
+	if os.Getenv("ATLAS_UNIT_TEST") == "1" {
+		return nil
+	}
 	var err error
 
 	switch runtime.GOOS {

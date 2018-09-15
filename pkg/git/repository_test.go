@@ -16,9 +16,10 @@ const (
 )
 
 func TestClone(t *testing.T) {
+	g := new(Client)
 	execute = fakeExecCommand
 	defer func() { execute = exec.Command }()
-	out, err := Clone("/tmp/", "https://github.com/ahstn/atlas", "atlas-http")
+	out, err := g.Clone("/tmp/", "https://github.com/ahstn/atlas", "atlas-http")
 	if err != nil {
 		t.Errorf("Expected nil error, got %#v", err)
 	}
@@ -28,9 +29,10 @@ func TestClone(t *testing.T) {
 }
 
 func TestCheckout(t *testing.T) {
+	g := new(Client)
 	execute = fakeExecCommand
 	defer func() { execute = exec.Command }()
-	out, err := CheckoutBranch("/tmp/", "master")
+	out, err := g.CheckoutBranch("/tmp/", "master")
 	if err != nil {
 		t.Errorf("Expected nil error, got %#v", err)
 	}
@@ -40,9 +42,10 @@ func TestCheckout(t *testing.T) {
 }
 
 func TestCreateBranch(t *testing.T) {
+	g := new(Client)
 	execute = fakeExecCommand
 	defer func() { execute = exec.Command }()
-	out, err := CreateBranch("/tmp/", "feature/testing")
+	out, err := g.CreateBranch("/tmp/", "feature/testing")
 	if err != nil {
 		t.Errorf("Expected nil error, got %#v", err)
 	}

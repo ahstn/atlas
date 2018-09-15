@@ -13,7 +13,10 @@ var Build = cli.Command{
 	Name:    "build",
 	Aliases: []string{"b"},
 	Usage:   "execute the application build process",
-	Action:  BuildAction,
+	Action: func(c *cli.Context) error {
+		mvn := builder.NewClient(os.Getenv("PWD"), nil, nil, nil)
+		return build(c, mvn)
+	},
 	Flags: []cli.Flag{
 		flag.Clean,
 		flag.SkipTests,
@@ -21,16 +24,16 @@ var Build = cli.Command{
 	},
 }
 
-// BuildAction executes the logic to clean the application build environment
+// build executes the logic to clean the application build environment
 // While also allowing commands to be chained
 // i.e. "atlas clean build"
-func BuildAction(c *cli.Context) error {
+func build(c *cli.Context, b builder.Builder) error {
 	goals := []string{"install"}
 
 	if c.IsSet("clean") {
 		goals = append([]string{"clean"}, goals...)
 	}
 
-	mvn := builder.NewClient(os.Getenv("PWD"), nil, goals, nil)
-	return mvn.Run(c.Bool("verbose"))
+	b.ModifyArgs(goals)
+	return b.Run(c.Bool("verbose"))
 }

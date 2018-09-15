@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/ahstn/atlas/pkg/git"
+	"github.com/ahstn/atlas/pkg/log"
 	"github.com/ahstn/atlas/pkg/util"
 	"github.com/urfave/cli"
-	emoji "gopkg.in/kyokomi/emoji.v1"
 )
 
 // Issues defines the command for the cli to open browser at Issues URL
@@ -16,7 +16,10 @@ var Issues = cli.Command{
 	Name:    "issues",
 	Aliases: []string{"i"},
 	Usage:   "open JIRA/Github issue tracker for current Git project",
-	Action:  IssuesAction,
+	Action: func(c *cli.Context) error {
+		logger := log.NewClient()
+		return issues(c, logger, new(git.Client))
+	},
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "url, u",
@@ -25,17 +28,13 @@ var Issues = cli.Command{
 	},
 }
 
-// IssuesAction executes logic to determine URL for 'Issues' page
-func IssuesAction(c *cli.Context) error {
-	url, err := determineURL(c)
-	if err != nil {
-		panic(err)
-	}
+// issues is the command action and allows dependency injection for testing
+func issues(c *cli.Context, logger log.Logger, g git.SourceController) error {
+	url, err := determineURL(c, g)
+	logger.CheckError(err)
 
-	out, err := git.Branch(os.Getenv("PWD"))
-	if err != nil {
-		panic(err)
-	}
+	out, err := g.Branch(os.Getenv("PWD"))
+	logger.CheckError(err)
 
 	branch := strings.TrimSpace(strings.ToLower(string(out)))
 	if git.IsShortLivedBranch(branch) {
@@ -43,21 +42,21 @@ func IssuesAction(c *cli.Context) error {
 
 		issueID := strings.SplitAfter(branch, "/")[1]
 		url = fmt.Sprintf("%s/%s", url, issueID)
-		emoji.Printf(":globe_with_meridians:Opening Repo Issue URL: %v", url)
+		logger.Printf(":globe_with_meridians:Opening Repo Issue URL: %v", url)
 	} else {
-		emoji.Printf(":globe_with_meridians:Opening Feature Issue URL: %v", url)
+		logger.Printf(":globe_with_meridians:Opening Feature Issue URL: %v", url)
 	}
 
 	return util.OpenBrowser(url)
 }
 
-func determineURL(c *cli.Context) (string, error) {
+func determineURL(c *cli.Context, g git.SourceController) (string, error) {
 	var url string
 
 	if c.IsSet("url") {
 		url = c.String("url")
 	} else {
-		out, err := git.URL(os.Getenv("PWD"))
+		out, err := g.URL(os.Getenv("PWD"))
 		if err != nil {
 			return "", err
 		}
