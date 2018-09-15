@@ -5,12 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
 	"strings"
 
 	"github.com/ahstn/atlas/pkg/pb"
+	"github.com/ahstn/atlas/pkg/util"
 	"github.com/briandowns/spinner"
-	"github.com/fatih/color"
 )
 
 // StreamError defines an error that occured during a Docker event
@@ -47,36 +46,17 @@ func (s Stream) Print() error {
 // prefixed to each line
 func PrintRun(r io.Reader, app string) error {
 	buf := make([]byte, 32*2014)
-	out := RandomOutputColor()
+	name := util.PadLeftColor(util.RandomOutputColor(), app)
 	for {
 		n, err := r.Read(buf)
 		if err == io.EOF {
 			break
 		}
 
-		fmt.Printf(" %s | %s\n", out(app), strings.TrimSpace(string(buf[:n])))
+		fmt.Println(name, "|", strings.TrimSpace(string(buf[:n])))
 	}
 
 	return nil
-}
-
-// RandomOutputColor uses fatih/color to return a function that will be used
-// to output a string that is bold and colored
-func RandomOutputColor() func(...interface{}) string {
-	switch rand.Intn(6) {
-	case 1:
-		return color.New(color.FgGreen, color.Bold).SprintFunc()
-	case 2:
-		return color.New(color.FgYellow, color.Bold).SprintFunc()
-	case 3:
-		return color.New(color.FgBlue, color.Bold).SprintFunc()
-	case 4:
-		return color.New(color.FgMagenta, color.Bold).SprintFunc()
-	case 5:
-		return color.New(color.FgCyan, color.Bold).SprintFunc()
-	default:
-		return color.New(color.FgRed, color.Bold).SprintFunc()
-	}
 }
 
 // PrintStream decodes the Docker output from io.Reader and outputs it to

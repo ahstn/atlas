@@ -18,18 +18,26 @@ func RunContainer(c context.Context, d config.DockerArtifact) error {
 		return err
 	}
 
-	ports, _, err := nat.ParsePortSpecs(d.Ports)
+	ports, portBindings, err := nat.ParsePortSpecs(d.Ports)
 	if err != nil {
 		return err
 	}
 
-	resp, err := cli.ContainerCreate(c, &container.Config{
-		Image:        d.Tag,
-		Cmd:          strings.Split(d.Cmd, " "),
-		Env:          d.Env,
-		ExposedPorts: ports,
-		Tty:          true,
-	}, nil, nil, "")
+	resp, err := cli.ContainerCreate(
+		c,
+		&container.Config{
+			Image:        d.Tag,
+			Cmd:          strings.Split(d.Cmd, " "),
+			Env:          d.Env,
+			ExposedPorts: ports,
+			Tty:          true,
+		},
+		&container.HostConfig{
+			PortBindings: portBindings,
+		},
+		nil,
+		"",
+	)
 	if err != nil {
 		return err
 	}

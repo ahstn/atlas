@@ -46,7 +46,7 @@ func (s Service) HasPackageSubDir() bool {
 type DockerArtifact struct {
 	Args       []string `yaml:"args"`
 	Env        []string `yaml:"env"`
-	Ports      []string `yaml:"port"`
+	Ports      []string `yaml:"ports"`
 	Dockerfile string   `yaml:"dockerfile"`
 	Path       string   `yaml:"path"`
 	Enabled    bool     `yaml:"enabled"`
