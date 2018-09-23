@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -13,6 +15,8 @@ const (
 	gitCheckoutResult     = "Switched to branch 'master'"
 	gitCreateBranchResult = "Switched to new branch 'feature/testing'"
 	gitUpdateResult       = "Current branch master is up to date."
+	gitURLResult          = "git@github.com:ahstn/atlas.git"
+	gitBranchResult       = "master"
 )
 
 func TestClone(t *testing.T) {
@@ -20,12 +24,8 @@ func TestClone(t *testing.T) {
 	execute = fakeExecCommand
 	defer func() { execute = exec.Command }()
 	out, err := g.Clone("/tmp/", "https://github.com/ahstn/atlas", "atlas-http")
-	if err != nil {
-		t.Errorf("Expected nil error, got %#v", err)
-	}
-	if string(out) != gitCloneResult {
-		t.Errorf("Expected %q, got %q", gitCloneResult, out)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, gitCloneResult, string(out))
 }
 
 func TestCheckout(t *testing.T) {
@@ -33,12 +33,9 @@ func TestCheckout(t *testing.T) {
 	execute = fakeExecCommand
 	defer func() { execute = exec.Command }()
 	out, err := g.CheckoutBranch("/tmp/", "master")
-	if err != nil {
-		t.Errorf("Expected nil error, got %#v", err)
-	}
-	if string(out) != gitCheckoutResult {
-		t.Errorf("Expected %q, got %q", gitCheckoutResult, out)
-	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, gitCheckoutResult, string(out))
 }
 
 func TestCreateBranch(t *testing.T) {
@@ -46,12 +43,39 @@ func TestCreateBranch(t *testing.T) {
 	execute = fakeExecCommand
 	defer func() { execute = exec.Command }()
 	out, err := g.CreateBranch("/tmp/", "feature/testing")
-	if err != nil {
-		t.Errorf("Expected nil error, got %#v", err)
-	}
-	if string(out) != gitCreateBranchResult {
-		t.Errorf("Expected %q, got %q", gitCreateBranchResult, out)
-	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, gitCreateBranchResult, string(out))
+}
+
+func TestUpdateBranch(t *testing.T) {
+	g := new(Client)
+	execute = fakeExecCommand
+	defer func() { execute = exec.Command }()
+	out, err := g.Update("/tmp/")
+
+	assert.NoError(t, err)
+	assert.Equal(t, gitUpdateResult, string(out))
+}
+
+func TestURL(t *testing.T) {
+	g := new(Client)
+	execute = fakeExecCommand
+	defer func() { execute = exec.Command }()
+	out, err := g.URL("/tmp/")
+
+	assert.NoError(t, err)
+	assert.Equal(t, gitURLResult, string(out))
+}
+
+func TestBranch(t *testing.T) {
+	g := new(Client)
+	execute = fakeExecCommand
+	defer func() { execute = exec.Command }()
+	out, err := g.Branch("/tmp/")
+
+	assert.NoError(t, err)
+	assert.Equal(t, gitBranchResult, string(out))
 }
 
 func fakeExecCommand(command string, args ...string) *exec.Cmd {
@@ -88,9 +112,17 @@ func TestHelperProcess(t *testing.T) {
 		fmt.Fprintf(os.Stdout, gitUpdateResult)
 	case strings.Contains(strings.Join(args, " "), "checkout -b"):
 		fmt.Fprintf(os.Stdout, gitCreateBranchResult)
-	case strings.Contains(strings.Join(args, " "), "checkout"):
+	case argsMatchCommand(args, "checkout"):
 		fmt.Fprintf(os.Stdout, gitCheckoutResult)
+	case argsMatchCommand(args, "ls-remote"):
+		fmt.Fprintf(os.Stdout, gitURLResult)
+	case argsMatchCommand(args, "rev-parse"):
+		fmt.Fprintf(os.Stdout, gitBranchResult)
 	}
 
 	os.Exit(0)
+}
+
+func argsMatchCommand(args []string, cmd string) bool {
+	return strings.Contains(strings.Join(args, " "), cmd)
 }
