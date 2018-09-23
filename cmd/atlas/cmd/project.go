@@ -12,7 +12,6 @@ import (
 	"github.com/ahstn/atlas/pkg/config"
 	"github.com/ahstn/atlas/pkg/docker"
 	"github.com/ahstn/atlas/pkg/util"
-	"github.com/ahstn/atlas/pkg/validator"
 	"github.com/docker/docker/client"
 	"github.com/urfave/cli"
 	emoji "gopkg.in/kyokomi/emoji.v1"
@@ -39,16 +38,7 @@ func ProjectAction(c *cli.Context) error {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 
-	f, err := validator.ValidateExists(c.String("config"))
-	if err != nil {
-		panic(err)
-	}
-
-	if err = validator.ValidateConfig(f); err != nil {
-		panic(err)
-	}
-
-	cfg, err := config.Read(f)
+	cfg, err := config.ReadAndValidate(c.String("config"))
 	if err != nil {
 		panic(err)
 	}
@@ -59,23 +49,15 @@ func ProjectAction(c *cli.Context) error {
 		panic(err)
 	}
 
-	go func() {
-		<-quit
-		fmt.Println("\n\nUser Shutdown - Cleaning up containers..")
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		for _, app := range cfg.Services {
-			docker.StopAndRemoveContainer(ctx, cli, app.Docker)
-		}
-		os.Exit(1)
-	}()
+	go DetectShutdown(ctx, cli, cfg, quit)
 
 	emoji.Printf(":file_folder:Operating in base directory [%v]\n", cfg.Root)
 	for _, app := range cfg.Services {
 		emoji.Printf("\n:wrench:Building: %v [%v]...\n", app.Name, app.Path)
 		mvn = builder.NewClient(app.Path, app.Env, app.Tasks, app.Args)
-		createAndRunBuilder(app.Path, mvn, *app, c)
+		if err != runAppBuild(app.Path, mvn, *app, c.Bool("verbose")) {
+			panic(err)
+		}
 
 		emoji.Printf(":whale:Building Dockerfile: %v [%v]...\n", app.Name, app.Path)
 		if err != runDockerBuild(cli, app.Path, *app) {
@@ -87,24 +69,25 @@ func ProjectAction(c *cli.Context) error {
 }
 
 // TODO: Handle Package Args
-func createAndRunBuilder(p string, mvn builder.Builder, app config.Service, c *cli.Context) error {
+func runAppBuild(p string, mvn builder.Builder, app config.Service, v bool) error {
 	if len(app.Tasks) == 0 {
 		emoji.Print("  :zzz: Maven build disabled. Skipping...\n")
 		return nil
 	}
+
 	// In the event package pom lives in a seperate folder and needs to be ran
 	// after the build, handle as such.
 	if app.HasTask("package") && app.HasPackageSubDir() {
 		mvn.ModifyArgs(util.StringSliceRemove(app.Tasks, "package"))
-		if err := mvn.Run(c.Bool("verbose")); err != nil {
+		if err := mvn.Run(v); err != nil {
 			return err
 		}
 
 		mvn.ModifyArgs([]string{"package", app.Package.Args})
-		return mvn.Run(c.Bool("verbose"))
+		return mvn.Run(v)
 	}
 
-	return mvn.Run(c.Bool("verbose"))
+	return mvn.Run(v)
 }
 
 func runDockerBuild(cli *client.Client, p string, app config.Service) error {
@@ -142,4 +125,18 @@ func runDockerLogs(ctx context.Context, svcs []*config.Service) error {
 	}
 
 	return nil
+}
+
+// DetectShutdown actives on SIGTERM when the user cancels the process and
+// gracefully shuts down all running containers
+func DetectShutdown(ctx context.Context, cli *client.Client, cfg config.Project, quit chan os.Signal) {
+	<-quit
+	fmt.Println("\n\nUser Shutdown - Cleaning up containers..")
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	for _, app := range cfg.Services {
+		docker.StopAndRemoveContainer(ctx, cli, app.Docker)
+	}
+	os.Exit(1)
 }

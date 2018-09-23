@@ -125,3 +125,13 @@ func imageExists(c context.Context, cli *client.Client, img string) bool {
 
 	return false
 }
+
+func ImagePush(ctx context.Context, cli *client.Client, ref string) error {
+	rc, err := cli.ImagePush(ctx, ref, types.ImagePushOptions{})
+	if err != nil {
+		return err
+	}
+
+	defer rc.Close()
+	return PrintStream(rc)
+}

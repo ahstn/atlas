@@ -66,6 +66,19 @@ type Package struct {
 	SubDir string `yaml:"subDir"`
 }
 
+func ReadAndValidate(path string) (Project, error) {
+	f, err := validator.ValidateExists(path)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = validator.ValidateConfig(f); err != nil {
+		panic(err)
+	}
+
+	return Read(f)
+}
+
 // Read attempts to parse the config file located at the path passed in
 // TODO: Seperate this into two functions to make testing easier
 func Read(path string) (Project, error) {

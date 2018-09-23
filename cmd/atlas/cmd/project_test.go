@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"flag"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -89,10 +88,7 @@ func TestPanicWithInvalidConfig(t *testing.T) {
 	}
 }
 
-func TestCreateAndRunBuilder(t *testing.T) {
-	set := flag.NewFlagSet("test", 0)
-	c := cli.NewContext(nil, set, nil)
-
+func TestRunAppBuild(t *testing.T) {
 	app := config.Service{
 		Tasks: []string{"clean", "build", "package"},
 		Package: config.Package{
@@ -103,7 +99,7 @@ func TestCreateAndRunBuilder(t *testing.T) {
 	mvn.On("Run", mock.AnythingOfType("bool")).Return(nil)
 	mvn.On("ModifyArgs", mock.AnythingOfType("[]string")).Return(nil)
 
-	createAndRunBuilder("", mvn, app, c)
+	runAppBuild("", mvn, app, false)
 	mvn.AssertNumberOfCalls(t, "ModifyArgs", 2)
 	mvn.AssertNumberOfCalls(t, "Run", 2)
 
@@ -113,12 +109,12 @@ func TestCreateAndRunBuilder(t *testing.T) {
 	mvn = &mocks.Builder{}
 	mvn.On("Run", mock.AnythingOfType("bool")).Return(nil)
 
-	createAndRunBuilder("", mvn, app, c)
+	runAppBuild("", mvn, app, false)
 	mvn.AssertNumberOfCalls(t, "Run", 1)
 
 	mvn = &mocks.Builder{}
 	mvn.On("Run", mock.AnythingOfType("bool")).Return(errors.New("mock error"))
 
-	err := createAndRunBuilder("", mvn, app, c)
+	err := runAppBuild("", mvn, app, false)
 	assert.EqualError(t, err, "mock error")
 }
